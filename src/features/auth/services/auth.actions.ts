@@ -1,42 +1,21 @@
 'use server';
 
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { isAppError } from '@/utils/errors';
 import type { ActionState } from '../types';
-import { loginSchema, signupSchema, verifyEmailSchema } from '../utils/auth.schemas';
+import {
+  loginSchema,
+  requestCodeSchema,
+  signupSchema,
+  verifyEmailSchema,
+} from '../utils/auth.schemas';
+import { failure, fieldErrors, text, verifyUrl } from '../utils/formData';
 import { sanitizeNextPath } from '../utils/nextPath';
 import { authService } from './auth.service';
+import { clientIp } from './requestInfo';
 
 // Server Actions: validan con Zod, devuelven estado serializable (useActionState) y redirigen con `next` seguro.
-
-const text = (formData: FormData, name: string) => {
-  const value = formData.get(name);
-  return typeof value === 'string' ? value : '';
-};
-
-async function clientIp(): Promise<string | undefined> {
-  const h = await headers();
-  return h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || undefined;
-}
-
-function fieldErrors(issues: { path: PropertyKey[]; message: string }[]) {
-  const errors: Partial<Record<string, string>> = {};
-  for (const issue of issues) {
-    const key = String(issue.path[0] ?? '');
-    if (key && !errors[key]) errors[key] = issue.message;
-  }
-  return errors;
-}
-
-const failure = (code: string, extra: Partial<ActionState> = {}): ActionState => ({
-  status: 'error',
-  code,
-  ...extra,
-});
-
-const verifyUrl = (email: string, next: string) =>
-  `/verify-email?email=${encodeURIComponent(email)}${next === '/' ? '' : `&next=${encodeURIComponent(next)}`}`;
+const captcha = (formData: FormData) => text(formData, 'captchaToken') || undefined;
 
 export async function signUpAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = signupSchema.safeParse({
@@ -50,7 +29,11 @@ export async function signUpAction(_prev: ActionState, formData: FormData): Prom
 
   const next = sanitizeNextPath(text(formData, 'next'));
   try {
-    const result = await authService.signUp({ ...parsed.data, ip: await clientIp() });
+    const result = await authService.signUp({
+      ...parsed.data,
+      ip: await clientIp(),
+      captchaToken: captcha(formData),
+    });
     if (result.status === 'email_exists') return failure('email_exists');
   } catch (error) {
     return failure(isAppError(error) ? error.code : 'unknown');
@@ -81,12 +64,10 @@ export async function resendCodeAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const parsed = verifyEmailSchema
-    .pick({ email: true })
-    .safeParse({ email: text(formData, 'email') });
+  const parsed = requestCodeSchema.safeParse({ email: text(formData, 'email') });
   if (!parsed.success) return failure('validation');
   try {
-    await authService.resendCode(parsed.data.email, await clientIp());
+    await authService.requestResend(parsed.data.email, await clientIp(), captcha(formData));
   } catch (error) {
     if (isAppError(error) && error.code === 'cooldown') {
       const seconds = (error.details as { seconds?: number } | undefined)?.seconds;
@@ -107,13 +88,60 @@ export async function signInAction(_prev: ActionState, formData: FormData): Prom
 
   const next = sanitizeNextPath(text(formData, 'next'));
   try {
-    const result = await authService.signInWithPassword({ ...parsed.data, ip: await clientIp() });
+    const result = await authService.signInWithPassword({
+      ...parsed.data,
+      ip: await clientIp(),
+      captchaToken: captcha(formData),
+    });
     if (result.status === 'unverified') redirect(verifyUrl(parsed.data.email, next));
   } catch (error) {
     if (!isAppError(error)) throw error; // incluye la señal de redirect de Next
     return failure(error.code);
   }
   redirect(next);
+}
+
+/** Acceso por código, paso 1: respuesta genérica (A5). */
+export async function requestLoginCodeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const parsed = requestCodeSchema.safeParse({ email: text(formData, 'email') });
+  if (!parsed.success)
+    return failure('validation', { fieldErrors: fieldErrors(parsed.error.issues) });
+  try {
+    await authService.requestLoginCode(parsed.data.email, await clientIp(), captcha(formData));
+  } catch (error) {
+    return failure(isAppError(error) ? error.code : 'unknown');
+  }
+  return { status: 'success' };
+}
+
+/** Acceso por código, paso 2. */
+export async function verifyLoginCodeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const parsed = verifyEmailSchema.safeParse({
+    email: text(formData, 'email'),
+    code: text(formData, 'code'),
+  });
+  if (!parsed.success)
+    return failure('validation', { fieldErrors: fieldErrors(parsed.error.issues) });
+  try {
+    await authService.verifyLoginCode(parsed.data.email, parsed.data.code);
+  } catch (error) {
+    return failure(isAppError(error) ? error.code : 'unknown');
+  }
+  redirect(sanitizeNextPath(text(formData, 'next')));
+}
+
+/** Reenvío del código de acceso (misma respuesta genérica; el cooldown es del cliente). */
+export async function resendLoginCodeAction(
+  prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  return requestLoginCodeAction(prev, formData);
 }
 
 export async function signOutAction(): Promise<void> {

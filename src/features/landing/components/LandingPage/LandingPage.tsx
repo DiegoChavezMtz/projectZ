@@ -1,4 +1,5 @@
 import { Container } from '@/components/atoms/Container';
+import { Categories } from '../Categories';
 import { Faq } from '../Faq';
 import { FinalCta } from '../FinalCta';
 import { ForBuyers } from '../ForBuyers';
@@ -7,6 +8,8 @@ import { Hero } from '../Hero';
 import { HowItWorks } from '../HowItWorks';
 import { JsonLd } from '../JsonLd';
 import { LiveClaimPreview } from '../LiveClaimPreview';
+import { Pricing } from '../Pricing';
+import { Promises } from '../Promises';
 import styles from './LandingPage.module.css';
 
 export function LandingPage() {
@@ -14,12 +17,15 @@ export function LandingPage() {
     <>
       <JsonLd />
       <Hero />
+      <Promises />
+      <Categories />
       <HowItWorks />
+      <LiveClaimPreview />
       <Container className={styles.audiences}>
         <ForSellers />
         <ForBuyers />
       </Container>
-      <LiveClaimPreview />
+      <Pricing />
       <Faq />
       <FinalCta />
     </>

@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   verify: vi.fn(),
   findLatest: vi.fn(),
   send: vi.fn(),
+  captchaCheck: vi.fn(),
 }));
 
 vi.mock('@/lib/supabase/admin', () => ({
@@ -31,7 +32,12 @@ vi.mock('@/lib/supabase/admin', () => ({
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     auth: { signInWithPassword: mocks.signInWithPassword, verifyOtp: mocks.verifyOtp },
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null }) }) }) }),
   }),
+}));
+vi.mock('@/lib/supabase/stateless', () => ({ createStatelessClient: () => ({}) }));
+vi.mock('@/features/auth/services/captcha.service', () => ({
+  captchaService: { check: mocks.captchaCheck },
 }));
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
 vi.mock('@/services/email.service', () => ({ emailService: { send: mocks.send } }));
@@ -46,6 +52,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   mocks.profileUpdate.mockResolvedValue({ error: null });
   mocks.issue.mockResolvedValue({ code: '123456' });
+  mocks.captchaCheck.mockResolvedValue(undefined);
 });
 
 describe('authService.signUp', () => {
@@ -156,7 +163,7 @@ describe('authService.verifyEmail', () => {
   });
 
   it('código válido: confirma por admin y canjea el magiclink en el cliente de servidor', async () => {
-    mocks.verify.mockResolvedValue({ ok: true, userId: 'u1', payload: {} });
+    mocks.verify.mockResolvedValue({ ok: true, id: 'c1', userId: 'u1', payload: {} });
     mocks.updateUserById.mockResolvedValue({ error: null });
     mocks.generateLink.mockResolvedValue({
       data: { properties: { hashed_token: 'th' } },
@@ -166,5 +173,28 @@ describe('authService.verifyEmail', () => {
     await authService.verifyEmail('a@b.co', '123456');
     expect(mocks.updateUserById).toHaveBeenCalledWith('u1', { email_confirm: true });
     expect(mocks.verifyOtp).toHaveBeenCalledWith({ type: 'magiclink', token_hash: 'th' });
+  });
+});
+
+describe('captcha', () => {
+  it('signUp y login se detienen si la verificación de seguridad falla', async () => {
+    mocks.captchaCheck.mockRejectedValue(new AppError('captcha_failed', 'no'));
+    await expect(
+      authService.signUp({ email: 'a@b.co', password: 'abc12345', displayName: 'Ana' }),
+    ).rejects.toMatchObject({ code: 'captcha_failed' });
+    await expect(
+      authService.signInWithPassword({ email: 'a@b.co', password: 'x' }),
+    ).rejects.toMatchObject({ code: 'captcha_failed' });
+    expect(mocks.createUser).not.toHaveBeenCalled();
+    expect(mocks.signInWithPassword).not.toHaveBeenCalled();
+  });
+
+  it('el login pasa a Supabase el token que le deja el captchaService', async () => {
+    mocks.captchaCheck.mockResolvedValue('tok');
+    mocks.signInWithPassword.mockResolvedValue({ error: null });
+    await authService.signInWithPassword({ email: 'a@b.co', password: 'x', captchaToken: 'tok' });
+    expect(mocks.signInWithPassword).toHaveBeenCalledWith(
+      expect.objectContaining({ options: { captchaToken: 'tok' } }),
+    );
   });
 });

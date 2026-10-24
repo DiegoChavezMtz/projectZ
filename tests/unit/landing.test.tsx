@@ -10,12 +10,14 @@ describe('LandingPage', () => {
     const { container } = render(<LandingPage />);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     for (const name of [
+      'Una plaza para todo lo que coleccionas',
       'Cómo funciona',
+      'Así se ve una sala en vivo',
       'Para vendedores',
       'Para compradores',
-      'Así se ve una sala en vivo',
+      'Compras gratis. Vendes desde $50 al mes.',
       'Preguntas frecuentes',
-      'Listo para tu primer claim',
+      'Que no se te pase el próximo claim',
     ]) {
       expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
     }
@@ -23,16 +25,34 @@ describe('LandingPage', () => {
     expect(screen.getAllByRole('listitem').length).toBeGreaterThan(8);
   });
 
-  it('el CTA primario lleva a /signup y el secundario al ancla', () => {
+  it('el CTA primario lleva a /signup y el secundario a los precios', () => {
     render(<LandingPage />);
-    expect(screen.getAllByRole('link', { name: 'Crear cuenta' })[0]).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Quiero mi primer claim' })).toHaveAttribute(
       'href',
       '/signup',
     );
-    expect(screen.getByRole('link', { name: 'Ver cómo funciona' })).toHaveAttribute(
-      'href',
-      '#como-funciona',
-    );
+    expect(screen.getByRole('link', { name: 'Soy vendedor' })).toHaveAttribute('href', '#precios');
+  });
+
+  it('muestra los dos planes con su precio y la promesa de cero comisión', () => {
+    const { container } = render(<LandingPage />);
+    const plans = container.querySelectorAll('#precios article');
+    expect(plans).toHaveLength(2);
+    expect(plans[0]).toHaveTextContent('Básico');
+    expect(plans[0]).toHaveTextContent('$50');
+    expect(plans[1]).toHaveTextContent('Pro');
+    expect(plans[1]).toHaveTextContent('$100');
+    expect(screen.getAllByText(/comisión/i).length).toBeGreaterThan(0);
+    for (const cta of screen.getAllByRole('link', { name: 'Empezar gratis' })) {
+      expect(cta).toHaveAttribute('href', '/signup');
+    }
+  });
+
+  it('las ilustraciones decorativas no exponen imágenes sin texto alternativo', () => {
+    const { container } = render(<LandingPage />);
+    for (const img of container.querySelectorAll('img')) {
+      expect(img.hasAttribute('alt')).toBe(true);
+    }
   });
 
   it('el acordeón usa <details>/<summary> nativos (teclado cubierto en e2e)', () => {

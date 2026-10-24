@@ -3,10 +3,10 @@ import { decideRoute } from '@/features/auth/utils/routeGuard';
 import { updateSession } from '@/lib/supabase/middleware';
 
 export async function proxy(request: NextRequest) {
-  const { response, user } = await updateSession(request);
+  const { response, user, termsAccepted } = await updateSession(request);
   const { pathname, search } = request.nextUrl;
 
-  const decision = decideRoute({ pathname, search, hasSession: Boolean(user) });
+  const decision = decideRoute({ pathname, search, hasSession: Boolean(user), termsAccepted });
   if (decision.action === 'next') return response;
 
   // Se conservan las cookies de sesión refrescadas en la redirección.

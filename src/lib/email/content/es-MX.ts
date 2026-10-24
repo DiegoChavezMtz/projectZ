@@ -18,6 +18,18 @@ export const emailContent = {
     greeting: '¡Hola!',
     body: 'Usa este código para entrar a tu cuenta de Zlotify.',
   },
+  resetPassword: {
+    subject: 'Tu código para restablecer tu contraseña',
+    greeting: '¡Hola!',
+    body: 'Recibimos una solicitud para restablecer la contraseña de tu cuenta de Zlotify. Usa este código para continuar.',
+    warning: 'Si no fuiste tú, ignora este correo: tu contraseña no cambiará.',
+  },
+  changeEmail: {
+    subject: 'Confirma tu nuevo correo',
+    greeting: '¡Hola!',
+    body: (newEmail: string) =>
+      `Pediste usar ${newEmail} como el correo de tu cuenta de Zlotify. Usa este código para confirmarlo.`,
+  },
   welcome: {
     subject: 'Bienvenido a Zlotify',
     greeting: (displayName: string) => `¡Hola, ${displayName}!`,

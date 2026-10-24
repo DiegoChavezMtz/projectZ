@@ -86,8 +86,16 @@ export const emailCodeService = {
     return { code };
   },
 
-  /** Verifica el código más reciente sin consumir. Consume al acertar; cuenta intentos al fallar. */
-  async verify(email: string, purpose: CodePurpose, code: string): Promise<VerifyCodeResult> {
+  /**
+   * Verifica el código más reciente. Consume al acertar (salvo `consume: false`, para flujos que lo consumen
+   * después con `consume(id)`, como el token de /reset-password); cuenta intentos al fallar.
+   */
+  async verify(
+    email: string,
+    purpose: CodePurpose,
+    code: string,
+    options: { consume?: boolean } = {},
+  ): Promise<VerifyCodeResult> {
     const key = toEmailKey(email);
     const { data, error } = await table()
       .select('*')
@@ -104,16 +112,9 @@ export const emailCodeService = {
     if (!row) return { ok: false, reason: 'invalid' };
 
     if (result.status === 'ok') {
-      // Consumo atómico: si otra petición ganó la carrera, esta ya no encuentra fila.
-      const { data: consumed, error: consumeError } = await table()
-        .update({ consumed_at: new Date().toISOString() } as never)
-        .eq('id' as never, row.id as never)
-        .is('consumed_at' as never, null as never)
-        .select('id');
-      if (consumeError)
-        throw new AppError('code_verify_failed', 'No se pudo verificar el código', consumeError);
-      if (rows<unknown[]>(consumed).length === 0) return { ok: false, reason: 'invalid' };
-      return { ok: true, userId: row.user_id, payload: row.payload };
+      if (options.consume !== false && !(await this.consume(row.id)))
+        return { ok: false, reason: 'invalid' };
+      return { ok: true, id: row.id, userId: row.user_id, payload: row.payload };
     }
 
     if (result.status === 'incorrect' || result.status === 'exhausted') {
@@ -129,6 +130,36 @@ export const emailCodeService = {
         : { ok: false, reason: 'exhausted' };
     }
     return { ok: false, reason: result.status };
+  },
+
+  /**
+   * Consumo atómico de un código: devuelve false si ya estaba consumido o venció (otra petición ganó
+   * la carrera, o pasó el tiempo).
+   */
+  async consume(id: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    const { data, error } = await table()
+      .update({ consumed_at: now } as never)
+      .eq('id' as never, id as never)
+      .is('consumed_at' as never, null as never)
+      .gt('expires_at' as never, now as never)
+      .select('id');
+    if (error) throw new AppError('code_verify_failed', 'No se pudo verificar el código', error);
+    return rows<unknown[]>(data).length > 0;
+  },
+
+  /** Código vigente (sin consumir ni vencer) de un usuario para un propósito. Estado "pendiente" de la UI. */
+  async findPendingForUser(userId: string, purpose: CodePurpose): Promise<EmailCodeRow | null> {
+    const { data, error } = await table()
+      .select('*')
+      .eq('user_id' as never, userId as never)
+      .eq('purpose' as never, purpose as never)
+      .is('consumed_at' as never, null as never)
+      .gt('expires_at' as never, new Date().toISOString() as never)
+      .order('created_at' as never, { ascending: false })
+      .limit(1);
+    if (error) throw new AppError('code_verify_failed', 'No se pudo consultar el código', error);
+    return rows<EmailCodeRow[]>(data)[0] ?? null;
   },
 
   /** Último código emitido para (email, purpose), consumido o no. Para localizar al usuario pendiente. */

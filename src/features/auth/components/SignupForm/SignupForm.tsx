@@ -5,6 +5,7 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Text } from '@/components/atoms/Text';
 import { FormField } from '@/components/molecules/FormField';
+import { Turnstile } from '@/components/molecules/Turnstile';
 import { authContent } from '../../content/es-MX';
 import { useAuthForm } from '../../hooks/useAuthForm';
 import { signUpAction } from '../../services/auth.actions';
@@ -14,7 +15,7 @@ import styles from '../AuthForm.module.css';
 const c = authContent;
 
 export function SignupForm({ next }: { next?: string }) {
-  const { form, state, pending, onSubmit, errorFor } = useAuthForm<SignupInput>(
+  const { form, state, pending, onSubmit, errorFor, captcha } = useAuthForm<SignupInput>(
     signupSchema,
     signUpAction,
     { email: '', password: '', displayName: '', acceptTerms: false as unknown as true },
@@ -85,7 +86,8 @@ export function SignupForm({ next }: { next?: string }) {
           </Text>
         ) : null}
       </div>
-      <Button type="submit" fullWidth loading={pending}>
+      <Turnstile key={captcha.key} onToken={captcha.onToken} />
+      <Button type="submit" fullWidth loading={pending} disabled={!captcha.ready}>
         {c.signup.submit}
       </Button>
       <Text size="sm" tone="muted" className={styles.alt}>

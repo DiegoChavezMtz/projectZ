@@ -1,5 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+vi.mock('@/features/auth/services/captcha.service', () => ({
+  captchaService: { check: vi.fn().mockResolvedValue(undefined) },
+}));
+
 import { authService } from '@/features/auth/services/auth.service';
 import { emailCodeService } from '@/features/auth/services/emailCode.service';
 import { adminClient } from '../helpers/supabase';

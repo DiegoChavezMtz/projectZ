@@ -1,23 +1,20 @@
 .root {
   padding-block: var(--space-12);
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-8);
-  text-align: center;
+  background: var(--color-surface);
+  border-block: 1px solid var(--color-border);
+  scroll-margin-top: var(--header-height);
 }
 
 .room {
-  max-width: 48rem;
+  max-width: 64rem;
   margin-inline: auto;
   overflow: hidden;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-xl);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-lg);
+  background: var(--color-bg);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 var(--space-24) var(--color-accent-soft);
 }
 
 .bar {
@@ -38,13 +35,20 @@
   height: var(--space-2);
   border-radius: var(--radius-full);
   background: currentcolor;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.body {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-3);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-2);
-  padding: var(--space-3);
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  padding: 0;
   list-style: none;
 }
 
@@ -52,33 +56,48 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
+  gap: var(--space-1);
   padding: var(--space-2);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-bg);
-}
-
-.dim {
-  border-style: dashed;
-}
-
-.dim .art {
-  opacity: 0.5;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
 .art {
-  width: 100%;
-  aspect-ratio: 63 / 88;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(160deg, var(--color-surface-overlay), var(--color-surface-raised));
-  border: 1px solid var(--color-border-strong);
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.photo {
+  object-fit: cover;
+  object-position: center 60%;
+}
+
+.dim .photo {
+  filter: grayscale(0.7) brightness(0.6);
+}
+
+.status {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  background: rgb(14 14 16 / 0.8);
 }
 
 .name {
-  max-width: 100%;
   overflow: hidden;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  overflow: hidden;
+  color: var(--color-text-muted);
   font-size: var(--font-size-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -86,8 +105,56 @@
 
 .price {
   color: var(--color-accent);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.activity {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.activityTitle {
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.entry strong {
+  color: var(--color-text);
+}
+
+.when {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
 }
 
 @media (min-width: 768px) {
@@ -95,16 +162,23 @@
     padding-block: var(--space-16);
   }
 
-  .grid {
-    gap: var(--space-4);
+  .body {
+    grid-template-columns: 1fr 15rem;
     padding: var(--space-6);
+  }
+
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    align-self: start;
   }
 
   .item {
     padding: var(--space-3);
   }
+}
 
-  .name {
-    font-size: var(--font-size-sm);
+@media (min-width: 1024px) {
+  .body {
+    grid-template-columns: 1fr 18rem;
   }
 }

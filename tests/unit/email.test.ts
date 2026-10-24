@@ -126,7 +126,7 @@ describe('enrutamiento de envío', () => {
 });
 
 describe('plantillas de código (S2-05)', () => {
-  const data = { displayName: 'Ana', code: '482913' };
+  const data = { displayName: 'Ana', code: '482913', newEmail: 'nuevo@mail.com' };
 
   it('verifyEmail: snapshot de asunto y texto', () => {
     const { subject, text } = renderEmail({ template: 'verifyEmail', data }, { appUrl });
@@ -171,7 +171,55 @@ describe('plantillas de código (S2-05)', () => {
     `);
   });
 
-  it.each(['verifyEmail', 'loginCode'] as const)(
+  it('resetPassword: snapshot de asunto y texto', () => {
+    const { subject, text } = renderEmail(
+      { template: 'resetPassword', data: { code: '482913' } },
+      { appUrl },
+    );
+    expect({ subject, text }).toMatchInlineSnapshot(`
+      {
+        "subject": "Tu código para restablecer tu contraseña",
+        "text": "¡Hola!
+
+      Recibimos una solicitud para restablecer la contraseña de tu cuenta de Zlotify. Usa este código para continuar.
+
+      482913
+
+      Este código vence en 10 minutos.
+
+      Si no fuiste tú, ignora este correo: tu contraseña no cambiará.
+
+      --
+      Si no solicitaste esto, ignora este correo.
+      Aviso de privacidad: https://zlotify.test/privacidad",
+      }
+    `);
+  });
+
+  it('changeEmail: snapshot de asunto y texto, con el correo nuevo', () => {
+    const { subject, text } = renderEmail(
+      { template: 'changeEmail', data: { code: '482913', newEmail: 'nuevo@mail.com' } },
+      { appUrl },
+    );
+    expect({ subject, text }).toMatchInlineSnapshot(`
+      {
+        "subject": "Confirma tu nuevo correo",
+        "text": "¡Hola!
+
+      Pediste usar nuevo@mail.com como el correo de tu cuenta de Zlotify. Usa este código para confirmarlo.
+
+      482913
+
+      Este código vence en 10 minutos.
+
+      --
+      Si no solicitaste esto, ignora este correo.
+      Aviso de privacidad: https://zlotify.test/privacidad",
+      }
+    `);
+  });
+
+  it.each(['verifyEmail', 'loginCode', 'resetPassword', 'changeEmail'] as const)(
     '%s: el html y el texto traen el código, el asunto no',
     (template) => {
       const message = { template, data } as Parameters<typeof renderEmail>[0];

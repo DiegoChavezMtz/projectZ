@@ -17,6 +17,7 @@ export const common = {
       { label: 'Cómo funciona', href: '/#como-funciona' },
       { label: 'Para vendedores', href: '/#vendedores' },
       { label: 'Para compradores', href: '/#compradores' },
+      { label: 'Precios', href: '/#precios' },
       { label: 'Preguntas', href: '/#preguntas' },
     ],
     auth: { login: 'Iniciar sesión', signup: 'Crear cuenta' },
@@ -31,6 +32,10 @@ export const common = {
     digit: (index: number, total: number) => `Dígito ${index} de ${total}`,
   },
   toast: { region: 'Notificaciones' },
+  captcha: {
+    label: 'Verificación de seguridad',
+    error: 'No pudimos cargar la verificación de seguridad. Recarga la página e intenta de nuevo.',
+  },
   notFound: {
     code: '404',
     title: 'No encontramos esta página',

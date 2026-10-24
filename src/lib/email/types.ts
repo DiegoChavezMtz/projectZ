@@ -1,11 +1,15 @@
+import type { ChangeEmailData } from './templates/changeEmail';
 import type { LoginCodeData } from './templates/loginCode';
+import type { ResetPasswordData } from './templates/resetPassword';
 import type { VerifyEmailData } from './templates/verifyEmail';
 import type { WelcomeData } from './templates/welcome';
 
-/** Mapa plantilla → datos. Las demás plantillas (resetPassword, changeEmail) se agregan en S3. */
+/** Mapa plantilla → datos. Las plantillas de cumplimiento llegan en S8. */
 export type TemplateDataMap = {
   verifyEmail: VerifyEmailData;
   loginCode: LoginCodeData;
+  resetPassword: ResetPasswordData;
+  changeEmail: ChangeEmailData;
   welcome: WelcomeData;
 };
 

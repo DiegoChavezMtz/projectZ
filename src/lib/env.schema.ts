@@ -23,6 +23,8 @@ export const serverEnvSchema = z.object({
   EMAIL_FROM_ADDRESS: z.email(),
   EMAIL_REPLY_TO: z.email().optional(),
   TURNSTILE_SECRET_KEY: z.string().min(1),
+  // true cuando Captcha protection de Supabase está ON: el token de Turnstile lo valida Supabase (es de un solo uso).
+  SUPABASE_CAPTCHA_ENABLED: boolString.optional(),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;

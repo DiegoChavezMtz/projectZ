@@ -4,6 +4,7 @@ import { adminClient } from '../tests/helpers/supabase';
 import { getLastCode } from '../tests/helpers/outbox';
 import { cleanupTestData } from '../tests/helpers/cleanup';
 import { supabaseCleanupStore } from '../tests/helpers/cleanup.supabase';
+import { typeCode } from '../tests/helpers/e2e';
 import { createTestUser, TEST_EMAIL_DOMAIN } from '../tests/helpers/users';
 
 // e2e del núcleo de auth (S2-13). Correos vía email_outbox; todo con cuentas @test.zlotify.invalid.
@@ -23,13 +24,6 @@ async function signUp(page: Page, email: string, next?: string) {
   await page.getByLabel(/Acepto los/).check();
   await page.getByRole('button', { name: 'Crear cuenta' }).click();
   await page.waitForURL(/\/verify-email/);
-}
-
-async function typeCode(page: Page, code: string) {
-  // Teclear antes de la hidratación pierde el auto-envío (el servidor de desarrollo es lento bajo carga).
-  await page.waitForLoadState('networkidle');
-  await page.getByLabel('Dígito 1 de 6').click();
-  await page.keyboard.type(code);
 }
 
 const wrongCode = (code: string) => (code === '000000' ? '000001' : '000000');

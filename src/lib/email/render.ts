@@ -1,7 +1,9 @@
 import { emailContent } from './content/es-MX';
 import { layout } from './layout';
 import type { EmailMessage, RenderedEmail, TemplateDataMap, TemplateName } from './types';
+import { changeEmail } from './templates/changeEmail';
 import { loginCode } from './templates/loginCode';
+import { resetPassword } from './templates/resetPassword';
 import { verifyEmail } from './templates/verifyEmail';
 import { welcome } from './templates/welcome';
 
@@ -11,6 +13,8 @@ type Template<T extends TemplateName> = (data: TemplateDataMap[T], ctx: Context)
 const templates: { [T in TemplateName]: Template<T> } = {
   verifyEmail,
   loginCode,
+  resetPassword,
+  changeEmail,
   welcome,
 };
 
@@ -18,6 +22,8 @@ const templates: { [T in TemplateName]: Template<T> } = {
 export const sampleData: TemplateDataMap = {
   verifyEmail: { displayName: 'Diego', code: '123456' },
   loginCode: { code: '123456' },
+  resetPassword: { code: '123456' },
+  changeEmail: { code: '123456', newEmail: 'nuevo@ejemplo.com' },
   welcome: { displayName: 'Diego', isSeller: true },
 };
 

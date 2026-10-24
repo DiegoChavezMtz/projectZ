@@ -11,7 +11,9 @@ const created: TestUser[] = [];
  * Crea un usuario de prueba ya verificado (service role, correo @test.zlotify.invalid).
  * `profiles.is_test = true` lo asigna el trigger on_auth_user_created a partir del dominio (S2).
  */
-export async function createTestUser(options: { displayName?: string } = {}): Promise<TestUser> {
+export async function createTestUser(
+  options: { displayName?: string; acceptTerms?: boolean } = {},
+): Promise<TestUser> {
   const id = randomUUID().slice(0, 8);
   const user: Omit<TestUser, 'id'> = {
     email: `test-${id}${TEST_EMAIL_DOMAIN}`,
@@ -26,6 +28,13 @@ export async function createTestUser(options: { displayName?: string } = {}): Pr
   });
   if (error || !data.user)
     throw new Error(`No se pudo crear el usuario de prueba: ${error?.message}`);
+  // Como el registro propio: términos aceptados (S3-03 manda a /onboarding/terms a quien no los tiene).
+  if (options.acceptTerms !== false) {
+    await adminClient()
+      .from('profiles')
+      .update({ accepted_terms_at: new Date().toISOString() })
+      .eq('id', data.user.id);
+  }
   const full = { ...user, id: data.user.id };
   created.push(full);
   return full;
@@ -58,6 +67,9 @@ export async function deleteCreatedTestUsers(): Promise<void> {
   const admin = adminClient();
   while (created.length > 0) {
     const user = created.pop();
-    if (user) await admin.auth.admin.deleteUser(user.id);
+    if (user) {
+      await admin.auth.admin.deleteUser(user.id);
+      await admin.from('profiles').delete().eq('id', user.id).eq('is_test', true);
+    }
   }
 }

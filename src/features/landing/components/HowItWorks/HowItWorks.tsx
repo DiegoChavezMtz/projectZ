@@ -3,6 +3,7 @@ import { Heading } from '@/components/atoms/Heading';
 import { Icon } from '@/components/atoms/Icon';
 import { Text } from '@/components/atoms/Text';
 import { landingContent } from '../../content/es-MX';
+import { SectionHeader } from '../SectionHeader';
 import styles from './HowItWorks.module.css';
 
 export function HowItWorks() {
@@ -10,12 +11,7 @@ export function HowItWorks() {
   return (
     <section id={id} className={styles.root} aria-labelledby={`${id}-title`}>
       <Container>
-        <header className={styles.header}>
-          <Heading level={2} id={`${id}-title`}>
-            {title}
-          </Heading>
-          <Text tone="muted">{subtitle}</Text>
-        </header>
+        <SectionHeader id={`${id}-title`} title={title} subtitle={subtitle} />
         <ol className={styles.steps}>
           {steps.map((step, index) => (
             <li key={step.title} className={styles.step}>

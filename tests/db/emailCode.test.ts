@@ -31,7 +31,12 @@ describe('emailCodeService (BD en línea)', () => {
     expect(code).toMatch(/^\d{6}$/);
 
     const ok = await emailCodeService.verify(email, 'change_email', code);
-    expect(ok).toEqual({ ok: true, userId: null, payload: { new_email: 'x@y.co' } });
+    expect(ok).toEqual({
+      ok: true,
+      id: expect.any(String),
+      userId: null,
+      payload: { new_email: 'x@y.co' },
+    });
     const again = await emailCodeService.verify(email, 'change_email', code);
     expect(again).toEqual({ ok: false, reason: 'invalid' });
   });

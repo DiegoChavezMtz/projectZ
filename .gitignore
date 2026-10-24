@@ -56,3 +56,4 @@ playwright-report/
 test-results/
 .env*
 !.env.example
+/.next-e2e/

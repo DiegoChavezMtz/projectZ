@@ -7,7 +7,7 @@ import { createTestUser, signInAs, TEST_EMAIL_DOMAIN } from '../helpers/users';
 
 describe('identidad y códigos (BD en línea)', () => {
   it('el alta de un usuario crea perfil (is_test) y user_stats en 0', async () => {
-    const user = await createTestUser({ displayName: 'Ana Prueba' });
+    const user = await createTestUser({ displayName: 'Ana Prueba', acceptTerms: false });
     const admin = adminClient();
 
     const { data: profile, error } = await admin

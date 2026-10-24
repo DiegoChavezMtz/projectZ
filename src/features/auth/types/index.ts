@@ -32,7 +32,7 @@ export type EmailCodeRow = {
 export type CodeFailure = 'invalid' | 'expired' | 'exhausted' | 'incorrect';
 
 export type VerifyCodeResult =
-  | { ok: true; userId: string | null; payload: Record<string, unknown> }
+  | { ok: true; id: string; userId: string | null; payload: Record<string, unknown> }
   | { ok: false; reason: CodeFailure; attemptsLeft?: number };
 
 /** Perfil propio (fila completa de `profiles`). */
@@ -47,3 +47,14 @@ export type Profile = {
 
 export type SignUpResult = { status: 'verification_sent' } | { status: 'email_exists' };
 export type SignInResult = { status: 'signed_in' } | { status: 'unverified' };
+
+/** Fila de `seller_profiles` del propio vendedor (incluye `payment_instructions`). */
+export type Seller = {
+  user_id: string;
+  slug: string;
+  shop_name: string;
+  bio: string | null;
+  city: string | null;
+  payment_instructions: string | null;
+  created_at: string;
+};

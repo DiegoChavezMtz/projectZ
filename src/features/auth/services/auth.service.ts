@@ -5,9 +5,37 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { emailService } from '@/services/email.service';
 import { AppError } from '@/utils/errors';
-import type { Profile, SignInResult, SignUpResult } from '../types';
+import type { Profile, Seller, SignInResult, SignUpResult } from '../types';
+import { termsRedirectTo } from '../utils/routeGuard';
 import { toEmailKey } from '../utils/emailCode.utils';
+import { captchaService } from './captcha.service';
 import { emailCodeService } from './emailCode.service';
+import { findUserByEmail } from './userLookup';
+import { establishSession } from './sessionLink';
+
+/** Emite y envía un código solo si el correo pertenece a un usuario verificado. No revela nada ni lanza. */
+export async function sendCodeIfUserExists(
+  email: string,
+  purpose: 'login' | 'reset_password',
+  ip?: string,
+): Promise<void> {
+  try {
+    const user = await findUserByEmail(email);
+    if (!user?.email_confirmed_at) return;
+    const { code } = await emailCodeService.issue(email, purpose, { userId: user.id, ip });
+    await emailService.send({
+      to: email,
+      template: purpose === 'login' ? 'loginCode' : 'resetPassword',
+      data: { code },
+    });
+  } catch (error) {
+    // Sin correo ni código en el log (docs/spec/auth.md, Seguridad).
+    console.error(
+      `[auth] ${purpose}_request_failed`,
+      error instanceof AppError ? error.code : 'unknown',
+    );
+  }
+}
 
 // Ningún flujo usa correos de Supabase Auth: solo API admin + nuestro backend de correo (docs/spec/auth.md).
 const PROFILE_COLUMNS = 'id, handle, display_name, avatar_path, accepted_terms_at, created_at';
@@ -28,7 +56,9 @@ export const authService = {
     password: string;
     displayName: string;
     ip?: string;
+    captchaToken?: string;
   }): Promise<SignUpResult> {
+    await captchaService.check(input.captchaToken, input.ip);
     const email = toEmailKey(input.email);
     const admin = createAdminClient();
     const { data, error } = await admin.auth.admin.createUser({
@@ -67,17 +97,28 @@ export const authService = {
     });
     if (confirmError) throw new AppError('verify_failed', 'No se pudo verificar', confirmError);
 
-    const { data: link, error: linkError } = await admin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: key,
-    });
-    const tokenHash = link?.properties?.hashed_token;
-    if (linkError || !tokenHash)
-      throw new AppError('verify_failed', 'No se pudo iniciar sesión', linkError);
+    await establishSession(key);
+    await this.sendWelcome(result.userId, key);
+  },
 
-    const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({ type: 'magiclink', token_hash: tokenHash });
-    if (error) throw new AppError('verify_failed', 'No se pudo iniciar sesión', error);
+  /** Bienvenida tras el primer acceso verificado. Un fallo de correo no debe romper el registro. */
+  async sendWelcome(userId: string, email: string): Promise<void> {
+    try {
+      const profile = await this.getProfile(userId);
+      await emailService.send({
+        to: email,
+        template: 'welcome',
+        data: { displayName: profile?.display_name ?? 'Usuario', isSeller: false },
+      });
+    } catch (error) {
+      console.error('[auth] welcome_failed', error instanceof AppError ? error.code : 'unknown');
+    }
+  },
+
+  /** Reenvío pedido por la persona (con verificación de seguridad). */
+  async requestResend(email: string, ip?: string, captchaToken?: string): Promise<void> {
+    await captchaService.check(captchaToken, ip);
+    await this.resendCode(email, ip);
   },
 
   /**
@@ -102,11 +143,16 @@ export const authService = {
     email: string;
     password: string;
     ip?: string;
+    captchaToken?: string;
   }): Promise<SignInResult> {
+    const supabaseToken = await captchaService.check(input.captchaToken, input.ip, {
+      forSupabase: true,
+    });
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email: toEmailKey(input.email),
       password: input.password,
+      options: supabaseToken ? { captchaToken: supabaseToken } : undefined,
     });
     if (!error) return { status: 'signed_in' };
 
@@ -121,6 +167,28 @@ export const authService = {
       return { status: 'unverified' };
     }
     throw new AppError('invalid_credentials', 'Correo o contraseña incorrectos');
+  },
+
+  /**
+   * Acceso por código (A5): respuesta siempre genérica. Solo se envía si el correo existe y está verificado;
+   * cualquier fallo interno (cooldown, límite, correo) se registra sin revelar nada a quien consulta.
+   */
+  async requestLoginCode(email: string, ip?: string, captchaToken?: string): Promise<void> {
+    await captchaService.check(captchaToken, ip);
+    await sendCodeIfUserExists(email, 'login', ip);
+  },
+
+  /** Valida el código de acceso y abre la sesión. `invalid` se muestra como `incorrect` para no revelar nada. */
+  async verifyLoginCode(email: string, code: string): Promise<void> {
+    const key = toEmailKey(email);
+    const result = await emailCodeService.verify(key, 'login', code);
+    if (!result.ok)
+      throw new AppError(
+        result.reason === 'invalid' ? 'incorrect' : result.reason,
+        'Código no válido',
+      );
+    if (!result.userId) throw new AppError('incorrect', 'Código no válido');
+    await establishSession(key);
   },
 
   async signOut(): Promise<void> {
@@ -150,12 +218,45 @@ export const authService = {
     return (data as Profile | null) ?? null;
   },
 
-  /** Para server components protegidos: sin sesión redirige a /login?next=. */
-  async requireUser(nextPath = '/'): Promise<{ user: User; profile: Profile }> {
+  /**
+   * Para server components protegidos: sin sesión redirige a /login?next=; con términos pendientes, a
+   * /onboarding/terms (salvo `allowPendingTerms`, para la propia página de aceptación).
+   */
+  async requireUser(
+    nextPath = '/',
+    options: { allowPendingTerms?: boolean } = {},
+  ): Promise<{ user: User; profile: Profile }> {
     const user = await this.getUser();
     if (!user) redirect(`/login?next=${encodeURIComponent(nextPath)}`);
     const profile = await this.getProfile(user.id);
     if (!profile) redirect('/login');
+    if (!profile.accepted_terms_at && !options.allowPendingTerms)
+      redirect(termsRedirectTo(nextPath));
     return { user, profile };
+  },
+
+  /**
+   * Zona de vendedor (`/dashboard/**`): sin `seller_profiles` lleva al onboarding. Reutiliza `requireUser`
+   * (sesión y términos).
+   */
+  async requireSeller(nextPath = '/dashboard') {
+    const { user, profile } = await this.requireUser(nextPath);
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from('seller_profiles')
+      .select('user_id, slug, shop_name, bio, city, payment_instructions, created_at')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!data) redirect('/onboarding/seller');
+    return { user, profile, seller: data as Seller };
+  },
+
+  /** Los términos los escribe el servidor: el usuario no tiene privilegio sobre `accepted_terms_at`. */
+  async acceptTerms(userId: string): Promise<void> {
+    const { error } = await createAdminClient()
+      .from('profiles' as never)
+      .update({ accepted_terms_at: new Date().toISOString() } as never)
+      .eq('id' as never, userId as never);
+    if (error) throw new AppError('terms_failed', 'No se pudieron guardar los términos', error);
   },
 };

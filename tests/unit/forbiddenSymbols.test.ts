@@ -11,6 +11,7 @@ const FORBIDDEN: Array<[string, RegExp]> = [
   ['updateUser({ email })', /updateUser\s*\(\s*\{[^}]*\bemail\b/s],
   ['auth.signUp (cliente)', /auth\s*\.\s*signUp\s*\(/],
   ['inviteUserByEmail', /inviteUserByEmail/],
+  ['auth.reauthenticate (envía correo)', /auth\s*\.\s*reauthenticate\s*\(/],
 ];
 
 function sourceFiles(dir: string): string[] {

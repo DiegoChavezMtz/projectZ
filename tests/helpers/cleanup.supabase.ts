@@ -32,6 +32,8 @@ export function supabaseCleanupStore(): CleanupStore {
     async deleteUser(id) {
       const { error } = await admin.auth.admin.deleteUser(id);
       if (error && error.status !== 404) throw error;
+      // Sin FK a auth.users (migración 20261024120000) el perfil sobrevive al usuario: solo si es de prueba.
+      await admin.from('profiles').delete().eq('id', id).eq('is_test', true);
     },
     async deleteOutboxForTestAddresses() {
       const { error } = await admin

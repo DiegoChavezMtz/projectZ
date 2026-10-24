@@ -1,32 +1,81 @@
 .root {
-  padding-block: var(--space-16) var(--space-12);
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgb(201 169 110 / 0.12), transparent 70%);
+  overflow: hidden;
+  padding-block: var(--space-10) var(--space-12);
+  background:
+    radial-gradient(ellipse 70% 50% at 80% 0%, var(--color-accent-soft), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, var(--color-accent-soft), transparent 70%);
 }
 
 .inner {
+  display: grid;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+.copy {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-6);
-  text-align: center;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.copy .title {
+  font-size: var(--font-size-hero);
+  line-height: 1.05;
+}
+
+.accent {
+  background: var(--gradient-gold);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+}
+
+.subtitle {
+  max-width: 34rem;
 }
 
 .actions {
   display: flex;
   width: 100%;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
   gap: var(--space-3);
+}
+
+.proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  list-style: none;
+}
+
+.proofItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.check {
+  color: var(--color-success);
 }
 
 @media (min-width: 768px) {
   .root {
-    padding-block: var(--space-24) var(--space-16);
+    padding-block: var(--space-16) var(--space-24);
   }
 
   .actions {
     width: auto;
     flex-direction: row;
+  }
+}
+
+@media (min-width: 1024px) {
+  .inner {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: var(--space-8);
   }
 }

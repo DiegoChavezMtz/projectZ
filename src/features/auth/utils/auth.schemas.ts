@@ -30,6 +30,11 @@ export const handleSchema = z
   .regex(HANDLE_PATTERN, { error: v.handleInvalid })
   .refine((value) => !isReservedHandle(value), { error: v.handleReserved });
 
+export const slugSchema = z
+  .string()
+  .regex(SLUG_PATTERN, { error: v.slugInvalid })
+  .refine((value) => !isReservedHandle(value), { error: v.slugReserved });
+
 export const codeSchema = z
   .string()
   .trim()
@@ -50,5 +55,59 @@ export const loginSchema = z.object({
 
 export const verifyEmailSchema = z.object({ email: emailSchema, code: codeSchema });
 
+export const requestCodeSchema = z.object({ email: emailSchema });
+
+// Contraseña nueva con confirmación (recuperar y cambiar).
+const confirmedPassword = {
+  password: passwordSchema,
+  confirmPassword: z.string().min(1, { error: v.confirmRequired }),
+};
+const mustMatch = (data: { password: string; confirmPassword: string }) =>
+  data.password === data.confirmPassword;
+const mismatch = { error: v.passwordMismatch, path: ['confirmPassword'] };
+
+export const resetPasswordSchema = z.object(confirmedPassword).refine(mustMatch, mismatch);
+
+export const changePasswordSchema = z
+  .object({
+    // Vacía para quien solo tiene Google y establece su primera contraseña (el servidor decide si la exige).
+    currentPassword: z.string().default(''),
+    ...confirmedPassword,
+  })
+  .refine(mustMatch, mismatch);
+
+export const changeEmailSchema = z.object({
+  newEmail: emailSchema,
+  currentPassword: z.string().default(''),
+});
+
+export const deleteAccountSchema = z.object({
+  handle: z.string().trim().min(1, { error: v.handleRequired }),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type RequestCodeInput = z.infer<typeof requestCodeSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type ChangeEmailInput = z.infer<typeof changeEmailSchema>;
+
+export const profileSchema = z.object({ displayName: displayNameSchema, handle: handleSchema });
+
+const optionalText = (max: number, message: string) =>
+  z
+    .string()
+    .trim()
+    .max(max, { error: message })
+    .transform((value) => (value === '' ? null : value));
+
+export const sellerSchema = z.object({
+  shopName: z.string().trim().min(2, { error: v.shopNameMin }).max(60, { error: v.shopNameMax }),
+  slug: slugSchema,
+  bio: optionalText(280, v.bioMax),
+  city: optionalText(80, v.cityMax),
+  paymentInstructions: optionalText(500, v.paymentMax),
+});
+
+export type ProfileInput = z.infer<typeof profileSchema>;
+export type SellerInput = z.input<typeof sellerSchema>;
