@@ -1,0 +1,14 @@
+.root {
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.default {
+  background: var(--color-surface);
+}
+
+.raised {
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
+}

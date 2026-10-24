@@ -1,0 +1,43 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.terms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.checkLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-height: var(--tap-target-min);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+}
+
+.checkbox {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  accent-color: var(--color-accent);
+}
+
+.checkbox[aria-invalid='true'] {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.form a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.alt {
+  text-align: center;
+}

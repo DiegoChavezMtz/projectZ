@@ -124,3 +124,72 @@ describe('enrutamiento de envío', () => {
     expect((error as AppError).message).not.toContain('secret');
   });
 });
+
+describe('plantillas de código (S2-05)', () => {
+  const data = { displayName: 'Ana', code: '482913' };
+
+  it('verifyEmail: snapshot de asunto y texto', () => {
+    const { subject, text } = renderEmail({ template: 'verifyEmail', data }, { appUrl });
+    expect({ subject, text }).toMatchInlineSnapshot(`
+      {
+        "subject": "Tu código para verificar tu correo",
+        "text": "¡Hola, Ana!
+
+      Usa este código para verificar tu correo y terminar de crear tu cuenta en Zlotify.
+
+      482913
+
+      Este código vence en 10 minutos.
+
+      --
+      Si no solicitaste esto, ignora este correo.
+      Aviso de privacidad: https://zlotify.test/privacidad",
+      }
+    `);
+  });
+
+  it('loginCode: snapshot de asunto y texto', () => {
+    const { subject, text } = renderEmail(
+      { template: 'loginCode', data: { code: '482913' } },
+      { appUrl },
+    );
+    expect({ subject, text }).toMatchInlineSnapshot(`
+      {
+        "subject": "Tu código para entrar",
+        "text": "¡Hola!
+
+      Usa este código para entrar a tu cuenta de Zlotify.
+
+      482913
+
+      Este código vence en 10 minutos.
+
+      --
+      Si no solicitaste esto, ignora este correo.
+      Aviso de privacidad: https://zlotify.test/privacidad",
+      }
+    `);
+  });
+
+  it.each(['verifyEmail', 'loginCode'] as const)(
+    '%s: el html y el texto traen el código, el asunto no',
+    (template) => {
+      const message = { template, data } as Parameters<typeof renderEmail>[0];
+      const { subject, html, text } = renderEmail(message, { appUrl });
+      expect(html).toContain('482913');
+      expect(text).toContain('482913');
+      expect(subject).not.toContain('482913');
+      expect(html).toContain('10 minutos');
+    },
+  );
+
+  it('un destinatario de prueba guarda el código en claro en el outbox', async () => {
+    const { deps, outbox, send } = makeDeps();
+    await sendEmail({ to: 'a@test.zlotify.invalid', template: 'verifyEmail', data }, deps);
+    expect(send).not.toHaveBeenCalled();
+    expect(outbox.mock.calls[0]?.[0]).toMatchObject({
+      template: 'verifyEmail',
+      payload: { code: '482913' },
+    });
+  });
+});

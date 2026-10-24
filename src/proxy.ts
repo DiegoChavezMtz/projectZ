@@ -1,9 +1,18 @@
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { decideRoute } from '@/features/auth/utils/routeGuard';
 import { updateSession } from '@/lib/supabase/middleware';
 
 export async function proxy(request: NextRequest) {
-  const { response } = await updateSession(request);
-  return response;
+  const { response, user } = await updateSession(request);
+  const { pathname, search } = request.nextUrl;
+
+  const decision = decideRoute({ pathname, search, hasSession: Boolean(user) });
+  if (decision.action === 'next') return response;
+
+  // Se conservan las cookies de sesión refrescadas en la redirección.
+  const redirect = NextResponse.redirect(new URL(decision.to, request.url));
+  response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+  return redirect;
 }
 
 export const config = {

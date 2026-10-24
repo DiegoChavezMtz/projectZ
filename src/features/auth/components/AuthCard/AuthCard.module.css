@@ -1,0 +1,15 @@
+.root {
+  padding-block: var(--space-10) var(--space-16);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

@@ -2,6 +2,35 @@
 export const common = {
   appName: 'Zlotify',
   appDescription: 'Ventas en vivo de artículos de colección: reclama, paga y recibe.',
+  a11y: {
+    loading: 'Cargando',
+    close: 'Cerrar',
+    skipToContent: 'Saltar al contenido',
+  },
+  site: {
+    homeLabel: 'Zlotify, ir al inicio',
+    mainNavLabel: 'Navegación principal',
+    footerNavLabel: 'Información legal',
+    openMenu: 'Abrir menú',
+    closeMenu: 'Cerrar menú',
+    nav: [
+      { label: 'Cómo funciona', href: '/#como-funciona' },
+      { label: 'Para vendedores', href: '/#vendedores' },
+      { label: 'Para compradores', href: '/#compradores' },
+      { label: 'Preguntas', href: '/#preguntas' },
+    ],
+    auth: { login: 'Iniciar sesión', signup: 'Crear cuenta' },
+    footer: {
+      terms: 'Términos y condiciones',
+      privacy: 'Política de privacidad',
+      rights: 'Todos los derechos reservados.',
+    },
+  },
+  codeInput: {
+    group: 'Código de verificación',
+    digit: (index: number, total: number) => `Dígito ${index} de ${total}`,
+  },
+  toast: { region: 'Notificaciones' },
   notFound: {
     code: '404',
     title: 'No encontramos esta página',

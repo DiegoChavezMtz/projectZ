@@ -1,0 +1,31 @@
+.root {
+  line-height: var(--line-height-normal);
+}
+
+.sm {
+  font-size: var(--font-size-sm);
+}
+
+.md {
+  font-size: var(--font-size-md);
+}
+
+.lg {
+  font-size: var(--font-size-lg);
+}
+
+.default {
+  color: var(--color-text);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.danger {
+  color: var(--color-danger);
+}

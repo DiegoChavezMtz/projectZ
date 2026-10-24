@@ -1,0 +1,37 @@
+.root {
+  display: inline-flex;
+}
+
+.svg {
+  animation: spin 0.8s linear infinite;
+}
+
+.sm {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.md {
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
+.lg {
+  width: var(--space-8);
+  height: var(--space-8);
+}
+
+.track {
+  stroke: currentcolor;
+  opacity: 0.2;
+}
+
+.arc {
+  stroke: currentcolor;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

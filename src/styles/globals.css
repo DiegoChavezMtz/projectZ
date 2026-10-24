@@ -91,6 +91,8 @@
 
   /* Layout */
   --container-max: 1120px;
+  --container-narrow: 720px;
+  --header-height: 64px;
   --tap-target-min: 44px;
 }
 

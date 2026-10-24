@@ -1,17 +1,23 @@
 import { emailContent } from './content/es-MX';
 import { layout } from './layout';
 import type { EmailMessage, RenderedEmail, TemplateDataMap, TemplateName } from './types';
+import { loginCode } from './templates/loginCode';
+import { verifyEmail } from './templates/verifyEmail';
 import { welcome } from './templates/welcome';
 
 type Context = { appUrl: string };
 type Template<T extends TemplateName> = (data: TemplateDataMap[T], ctx: Context) => RenderedEmail;
 
 const templates: { [T in TemplateName]: Template<T> } = {
+  verifyEmail,
+  loginCode,
   welcome,
 };
 
 /** Ejemplo de datos por plantilla (pnpm email:preview y tests). */
 export const sampleData: TemplateDataMap = {
+  verifyEmail: { displayName: 'Diego', code: '123456' },
+  loginCode: { code: '123456' },
   welcome: { displayName: 'Diego', isSeller: true },
 };
 

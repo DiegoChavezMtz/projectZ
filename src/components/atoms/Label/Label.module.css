@@ -1,0 +1,6 @@
+.root {
+  display: block;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}

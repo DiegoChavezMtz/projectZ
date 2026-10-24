@@ -1,0 +1,26 @@
+.root {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+}
+
+.skip {
+  position: absolute;
+  z-index: var(--z-modal);
+  top: var(--space-2);
+  left: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: var(--font-weight-semibold);
+  transform: translateY(-200%);
+}
+
+.skip:focus {
+  transform: none;
+}

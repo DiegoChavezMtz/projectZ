@@ -33,10 +33,9 @@ export const heading = (text: string) =>
 export const button = (label: string, href: string) =>
   `<p style="margin:24px 0;"><a href="${escapeHtml(href)}" style="display:inline-block;padding:14px 28px;background:${t.accent};color:${t.onAccent};font-weight:600;text-decoration:none;border-radius:8px;">${escapeHtml(label)}</a></p>`;
 
-/** Código de 6 dígitos: bloque grande monoespaciado, separado visualmente y seleccionable. */
+/** Código de 6 dígitos: bloque grande monoespaciado, separado con letter-spacing (el texto queda contiguo, seleccionable y copiable). */
 export function codeBlock(code: string): string {
-  const spaced = code.split('').join(' ');
-  return `<p style="margin:24px 0;padding:20px;text-align:center;background:#F7F4EC;border:1px solid ${t.accent};border-radius:8px;font-family:${t.mono};font-size:32px;font-weight:700;letter-spacing:6px;color:${t.text};user-select:all;-webkit-user-select:all;">${escapeHtml(spaced)}</p>`;
+  return `<p style="margin:24px 0;padding:20px;text-align:center;background:#F7F4EC;border:1px solid ${t.accent};border-radius:8px;font-family:${t.mono};font-size:32px;font-weight:700;letter-spacing:6px;color:${t.text};user-select:all;-webkit-user-select:all;">${escapeHtml(code)}</p>`;
 }
 
 /** Envuelve el contenido en el layout base (600 px, fondo oscuro, tarjeta clara). */

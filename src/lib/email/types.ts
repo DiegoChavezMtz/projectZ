@@ -1,7 +1,11 @@
+import type { LoginCodeData } from './templates/loginCode';
+import type { VerifyEmailData } from './templates/verifyEmail';
 import type { WelcomeData } from './templates/welcome';
 
-/** Mapa plantilla → datos. Las demás plantillas (verifyEmail, loginCode, …) se agregan en S2/S3. */
+/** Mapa plantilla → datos. Las demás plantillas (resetPassword, changeEmail) se agregan en S3. */
 export type TemplateDataMap = {
+  verifyEmail: VerifyEmailData;
+  loginCode: LoginCodeData;
   welcome: WelcomeData;
 };
 

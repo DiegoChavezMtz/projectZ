@@ -12,5 +12,5 @@ test('una ruta inexistente muestra el 404 global', async ({ page }) => {
   await expect(
     page.getByRole('heading', { level: 1, name: 'No encontramos esta página' }),
   ).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Ir al inicio' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Ir al inicio', exact: true })).toBeVisible();
 });

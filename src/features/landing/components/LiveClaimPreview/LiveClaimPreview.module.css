@@ -1,0 +1,110 @@
+.root {
+  padding-block: var(--space-12);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.room {
+  max-width: 48rem;
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.roomName {
+  font-weight: var(--font-weight-semibold);
+}
+
+.dot {
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-full);
+  background: currentcolor;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.dim {
+  border-style: dashed;
+}
+
+.dim .art {
+  opacity: 0.5;
+}
+
+.art {
+  width: 100%;
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(160deg, var(--color-surface-overlay), var(--color-surface-raised));
+  border: 1px solid var(--color-border-strong);
+}
+
+.name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.price {
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (min-width: 768px) {
+  .root {
+    padding-block: var(--space-16);
+  }
+
+  .grid {
+    gap: var(--space-4);
+    padding: var(--space-6);
+  }
+
+  .item {
+    padding: var(--space-3);
+  }
+
+  .name {
+    font-size: var(--font-size-sm);
+  }
+}

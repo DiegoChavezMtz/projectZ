@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { publicEnv } from '@/lib/env.public';
 import type { Database } from '@/types/database.types';
 
-// Refresca la sesión en cada petición y propaga las cookies. Sin reglas de ruta todavía (llegan en S2).
+// Refresca la sesión en cada petición y propaga las cookies. Las reglas de ruta viven en src/proxy.ts.
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 

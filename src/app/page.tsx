@@ -1,4 +1,7 @@
-// Placeholder de S0. La landing en `/` llega en S1.
+import { LandingPage, landingMetadata } from '@/features/landing';
+
+export const metadata = landingMetadata;
+
 export default function Home() {
-  return <main />;
+  return <LandingPage />;
 }

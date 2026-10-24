@@ -1,0 +1,32 @@
+.root {
+  padding-block: var(--space-16) var(--space-12);
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgb(201 169 110 / 0.12), transparent 70%);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .root {
+    padding-block: var(--space-24) var(--space-16);
+  }
+
+  .actions {
+    width: auto;
+    flex-direction: row;
+  }
+}

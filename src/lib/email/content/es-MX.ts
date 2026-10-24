@@ -8,6 +8,16 @@ export const emailContent = {
   code: {
     validity: 'Este código vence en 10 minutos.',
   },
+  verifyEmail: {
+    subject: 'Tu código para verificar tu correo',
+    greeting: (displayName: string) => `¡Hola, ${displayName}!`,
+    body: 'Usa este código para verificar tu correo y terminar de crear tu cuenta en Zlotify.',
+  },
+  loginCode: {
+    subject: 'Tu código para entrar',
+    greeting: '¡Hola!',
+    body: 'Usa este código para entrar a tu cuenta de Zlotify.',
+  },
   welcome: {
     subject: 'Bienvenido a Zlotify',
     greeting: (displayName: string) => `¡Hola, ${displayName}!`,
