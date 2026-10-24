@@ -1,0 +1,1 @@
+export const Atom = () => null;
