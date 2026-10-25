@@ -68,6 +68,7 @@ export async function deleteCreatedTestUsers(): Promise<void> {
   while (created.length > 0) {
     const user = created.pop();
     if (user) {
+      await admin.from('claim_sessions').delete().eq('seller_id', user.id).eq('is_test', true);
       await admin.auth.admin.deleteUser(user.id);
       await admin.from('profiles').delete().eq('id', user.id).eq('is_test', true);
     }

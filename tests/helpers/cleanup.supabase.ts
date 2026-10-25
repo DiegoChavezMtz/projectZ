@@ -30,6 +30,8 @@ export function supabaseCleanupStore(): CleanupStore {
       return flags;
     },
     async deleteUser(id) {
+      // Eventos de prueba (y sus artículos, en cascada) antes que el vendedor.
+      await admin.from('claim_sessions').delete().eq('seller_id', id).eq('is_test', true);
       const { error } = await admin.auth.admin.deleteUser(id);
       if (error && error.status !== 404) throw error;
       // Sin FK a auth.users (migración 20261024120000) el perfil sobrevive al usuario: solo si es de prueba.

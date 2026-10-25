@@ -28,6 +28,7 @@ export async function SellerDashboardView() {
         <Text tone="muted">/{seller.slug}</Text>
         <Text>{c.dashboardText}</Text>
         <div className={styles.actions}>
+          <Button href="/dashboard/claims">{c.dashboardClaims}</Button>
           <Button href="/account" variant="secondary">
             {c.dashboardEdit}
           </Button>

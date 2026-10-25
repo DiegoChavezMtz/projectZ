@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { adminClient, anonClient } from '../helpers/supabase';
 import { createTestUser, signInAs, TEST_EMAIL_DOMAIN } from '../helpers/users';
 
-// S2-02: ejecutar SOLO tras aplicar la migración 20261023200000_identity_and_codes.sql.
+// S2-02: ejecutar SOLO tras aplicar la migración 02_identity_and_codes.sql.
 
 describe('identidad y códigos (BD en línea)', () => {
   it('el alta de un usuario crea perfil (is_test) y user_stats en 0', async () => {

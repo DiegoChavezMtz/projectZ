@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR ?? '.next',
   cacheComponents: true,
   partialPrefetching: true,
+  // Las imágenes de artículo (WebP ≤ 5 MB) viajan por Server Action.
+  experimental: { serverActions: { bodySizeLimit: '6mb' } },
 };
 
 export default nextConfig;

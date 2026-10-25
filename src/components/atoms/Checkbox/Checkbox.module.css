@@ -1,0 +1,35 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-height: var(--tap-target-min);
+  padding-block: var(--space-2);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-snug);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.box {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  accent-color: var(--color-accent);
+}
+
+.box:disabled {
+  cursor: not-allowed;
+}
+
+.hint {
+  padding-left: calc(1.25rem + var(--space-3));
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}

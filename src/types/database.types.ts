@@ -14,6 +14,320 @@ export type Database = {
   }
   public: {
     Tables: {
+      claim_entries: {
+        Row: {
+          amount_cents: number
+          buyer_id: string
+          created_at: string
+          id: string
+          item_id: string
+          kind: Database["public"]["Enums"]["entry_kind"]
+          resolved_at: string | null
+          seq: number
+          session_id: string
+          status: Database["public"]["Enums"]["entry_status"]
+        }
+        Insert: {
+          amount_cents: number
+          buyer_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          kind: Database["public"]["Enums"]["entry_kind"]
+          resolved_at?: string | null
+          seq?: never
+          session_id: string
+          status: Database["public"]["Enums"]["entry_status"]
+        }
+        Update: {
+          amount_cents?: number
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          kind?: Database["public"]["Enums"]["entry_kind"]
+          resolved_at?: string | null
+          seq?: never
+          session_id?: string
+          status?: Database["public"]["Enums"]["entry_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_entries_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_entries_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_entries_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "claim_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_entries_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "claim_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claim_items: {
+        Row: {
+          attributes: Json
+          category: string
+          created_at: string
+          id: string
+          image_path: string | null
+          is_featured: boolean
+          is_preview: boolean
+          leader_at: string | null
+          leader_display_name: string | null
+          leader_entry_id: string | null
+          leader_handle: string | null
+          leader_user_id: string | null
+          leader_wins_count: number | null
+          offer_count: number
+          position: number
+          price_cents: number
+          released_at: string | null
+          session_id: string
+          status: Database["public"]["Enums"]["item_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attributes?: Json
+          category?: string
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          is_featured?: boolean
+          is_preview?: boolean
+          leader_at?: string | null
+          leader_display_name?: string | null
+          leader_entry_id?: string | null
+          leader_handle?: string | null
+          leader_user_id?: string | null
+          leader_wins_count?: number | null
+          offer_count?: number
+          position: number
+          price_cents: number
+          released_at?: string | null
+          session_id: string
+          status?: Database["public"]["Enums"]["item_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attributes?: Json
+          category?: string
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          is_featured?: boolean
+          is_preview?: boolean
+          leader_at?: string | null
+          leader_display_name?: string | null
+          leader_entry_id?: string | null
+          leader_handle?: string | null
+          leader_user_id?: string | null
+          leader_wins_count?: number | null
+          offer_count?: number
+          position?: number
+          price_cents?: number
+          released_at?: string | null
+          session_id?: string
+          status?: Database["public"]["Enums"]["item_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_items_leader_entry_fkey"
+            columns: ["leader_entry_id"]
+            isOneToOne: false
+            referencedRelation: "claim_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_items_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "claim_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claim_sessions: {
+        Row: {
+          allow_accumulate: boolean
+          auto_confirm: boolean
+          category: string
+          close_deadline_hours: number
+          code: string
+          created_at: string
+          description: string | null
+          ended_at: string | null
+          expected_duration_minutes: number | null
+          id: string
+          is_test: boolean
+          payment_deadline_hours: number
+          release_mode: Database["public"]["Enums"]["release_mode"]
+          rules: string | null
+          seller_id: string
+          shipping_deadline_hours: number
+          started_at: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["session_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          allow_accumulate?: boolean
+          auto_confirm?: boolean
+          category?: string
+          close_deadline_hours?: number
+          code: string
+          created_at?: string
+          description?: string | null
+          ended_at?: string | null
+          expected_duration_minutes?: number | null
+          id?: string
+          is_test?: boolean
+          payment_deadline_hours?: number
+          release_mode?: Database["public"]["Enums"]["release_mode"]
+          rules?: string | null
+          seller_id: string
+          shipping_deadline_hours?: number
+          started_at?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["session_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          allow_accumulate?: boolean
+          auto_confirm?: boolean
+          category?: string
+          close_deadline_hours?: number
+          code?: string
+          created_at?: string
+          description?: string | null
+          ended_at?: string | null
+          expected_duration_minutes?: number | null
+          id?: string
+          is_test?: boolean
+          payment_deadline_hours?: number
+          release_mode?: Database["public"]["Enums"]["release_mode"]
+          rules?: string | null
+          seller_id?: string
+          shipping_deadline_hours?: number
+          started_at?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["session_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_sessions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "public_seller_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "claim_sessions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "seller_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      claim_wins: {
+        Row: {
+          buyer_id: string
+          entry_id: string
+          id: string
+          item_id: string
+          price_cents: number
+          seller_id: string
+          session_id: string
+          won_at: string
+          won_via: Database["public"]["Enums"]["entry_kind"]
+        }
+        Insert: {
+          buyer_id: string
+          entry_id: string
+          id?: string
+          item_id: string
+          price_cents: number
+          seller_id: string
+          session_id: string
+          won_at?: string
+          won_via: Database["public"]["Enums"]["entry_kind"]
+        }
+        Update: {
+          buyer_id?: string
+          entry_id?: string
+          id?: string
+          item_id?: string
+          price_cents?: number
+          seller_id?: string
+          session_id?: string
+          won_at?: string
+          won_via?: Database["public"]["Enums"]["entry_kind"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_wins_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_wins_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_wins_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "claim_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_wins_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: true
+            referencedRelation: "claim_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "claim_wins_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "claim_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_codes: {
         Row: {
           attempts: number
@@ -173,6 +487,87 @@ export type Database = {
           },
         ]
       }
+      session_feed: {
+        Row: {
+          actor_display_name: string | null
+          actor_id: string | null
+          created_at: string
+          id: number
+          item_id: string | null
+          payload: Json
+          session_id: string
+          type: Database["public"]["Enums"]["feed_event_type"]
+        }
+        Insert: {
+          actor_display_name?: string | null
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          item_id?: string | null
+          payload?: Json
+          session_id: string
+          type: Database["public"]["Enums"]["feed_event_type"]
+        }
+        Update: {
+          actor_display_name?: string | null
+          actor_id?: string | null
+          created_at?: string
+          id?: never
+          item_id?: string | null
+          payload?: Json
+          session_id?: string
+          type?: Database["public"]["Enums"]["feed_event_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_feed_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "claim_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_participants: {
+        Row: {
+          first_entry_at: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          first_entry_at?: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          first_entry_at?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "claim_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_stats: {
         Row: {
           deliveries_late: number
@@ -321,12 +716,41 @@ export type Database = {
       }
     }
     Functions: {
+      cancel_session: { Args: { p_session_id: string }; Returns: Json }
+      generate_claim_code: { Args: never; Returns: string }
       is_handle_available: { Args: { p_handle: string }; Returns: boolean }
       is_slug_available: { Args: { p_slug: string }; Returns: boolean }
       is_test_email: { Args: { email: string }; Returns: boolean }
+      publish_session: { Args: { p_session_id: string }; Returns: Json }
+      reorder_items: {
+        Args: { p_ordered_ids: string[]; p_session_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       code_purpose: "verify_email" | "login" | "reset_password" | "change_email"
+      entry_kind: "claim" | "offer"
+      entry_status:
+        | "queued"
+        | "pending"
+        | "accepted"
+        | "rejected"
+        | "withdrawn"
+        | "superseded"
+      feed_event_type:
+        | "session_started"
+        | "session_ended"
+        | "item_released"
+        | "item_claimed"
+        | "item_offer"
+        | "item_sold"
+        | "item_withdrawn"
+        | "entry_rejected"
+        | "announcement"
+        | "item_featured"
+      item_status: "hidden" | "available" | "sold" | "withdrawn"
+      release_mode: "all_at_start" | "manual"
+      session_status: "draft" | "scheduled" | "live" | "ended" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -455,6 +879,30 @@ export const Constants = {
   public: {
     Enums: {
       code_purpose: ["verify_email", "login", "reset_password", "change_email"],
+      entry_kind: ["claim", "offer"],
+      entry_status: [
+        "queued",
+        "pending",
+        "accepted",
+        "rejected",
+        "withdrawn",
+        "superseded",
+      ],
+      feed_event_type: [
+        "session_started",
+        "session_ended",
+        "item_released",
+        "item_claimed",
+        "item_offer",
+        "item_sold",
+        "item_withdrawn",
+        "entry_rejected",
+        "announcement",
+        "item_featured",
+      ],
+      item_status: ["hidden", "available", "sold", "withdrawn"],
+      release_mode: ["all_at_start", "manual"],
+      session_status: ["draft", "scheduled", "live", "ended", "cancelled"],
     },
   },
 } as const

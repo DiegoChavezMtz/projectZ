@@ -136,7 +136,8 @@ export const authContent = {
     sell: 'Quiero vender',
     myShop: 'Mi tienda',
     dashboardTitle: 'Tu tienda',
-    dashboardText: 'Aquí vivirá tu consola de vendedor. Pronto podrás crear claims.',
+    dashboardText: 'Crea tus claims, agrega tus artículos y compártelos con tus compradores.',
+    dashboardClaims: 'Mis claims',
     dashboardEdit: 'Editar mi perfil',
   },
   security: {

@@ -11,7 +11,18 @@ export type DeletionBlocker = (userId: string) => Promise<string | null>;
  * y entregas sin completar, como comprador o vendedor. Esas tablas llegan en S4 (eventos), S5 y S8
  * (cuentas y entregas): cada sprint agrega aquí su consulta. En S3 no hay nada que consultar.
  */
-export const deletionBlockers: DeletionBlocker[] = [];
+export const deletionBlockers: DeletionBlocker[] = [
+  // S4: un evento en vivo bloquea el borrado del vendedor. Las cuentas y entregas se agregan en S5/S8.
+  async (userId) => {
+    const { count, error } = await createAdminClient()
+      .from('claim_sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('seller_id', userId)
+      .eq('status', 'live');
+    if (error) throw new AppError('delete_failed', 'No se pudo verificar la cuenta', error);
+    return (count ?? 0) > 0 ? 'live_session' : null;
+  },
+];
 
 // 42P01 / PGRST205: la tabla aún no existe (antes de la migración correspondiente).
 const isMissingTable = (error: { code?: string } | null) =>

@@ -1,0 +1,1 @@
+export { NewClaimView } from './NewClaimView';
