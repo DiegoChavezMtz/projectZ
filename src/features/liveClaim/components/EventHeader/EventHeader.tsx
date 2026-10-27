@@ -9,7 +9,13 @@ import type { LiveSeller } from '../../types';
 import styles from './EventHeader.module.css';
 
 const c = liveClaimContent;
-const tones = { draft: 'neutral', scheduled: 'info', live: 'success', ended: 'neutral', cancelled: 'danger' } as const;
+const tones = {
+  draft: 'neutral',
+  scheduled: 'info',
+  live: 'success',
+  ended: 'neutral',
+  cancelled: 'danger',
+} as const;
 
 type Props = { session: ClaimSession; seller: LiveSeller; children?: ReactNode };
 

@@ -37,7 +37,9 @@ function ActivityFeedBase({ events, noun }: Props) {
 
   useEffect(() => {
     // Derivado del scroll: cuántas novedades llegaron mientras leía arriba.
-    setUnseen(atBottom.current ? 0 : events.filter((event) => event.id > lastSeenId.current).length);
+    setUnseen(
+      atBottom.current ? 0 : events.filter((event) => event.id > lastSeenId.current).length,
+    );
   }, [events, lastId]);
 
   function onScroll() {

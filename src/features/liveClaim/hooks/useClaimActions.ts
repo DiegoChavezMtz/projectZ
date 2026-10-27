@@ -22,7 +22,13 @@ type Options = {
 const UNAVAILABLE = new Set(['item_not_available', 'invalid_state', 'session_not_live']);
 
 /** Acciones del comprador con respuesta optimista y reversión si el servidor las rechaza. */
-export function useClaimActions({ connection, dispatch, refresh, refreshEntries, requireLogin }: Options) {
+export function useClaimActions({
+  connection,
+  dispatch,
+  refresh,
+  refreshEntries,
+  requireLogin,
+}: Options) {
   const toast = useToast();
 
   const fail = useCallback(
@@ -33,7 +39,7 @@ export function useClaimActions({ connection, dispatch, refresh, refreshEntries,
         return;
       }
       toast.show(
-        isAppError(error) ? error.message : liveClaimContent.errors.unknown ?? '',
+        isAppError(error) ? error.message : (liveClaimContent.errors.unknown ?? ''),
         'danger',
       );
       // "No disponible": otra persona llegó primero. Se actualiza sin recargar la página.
@@ -112,7 +118,10 @@ export function useClaimActions({ connection, dispatch, refresh, refreshEntries,
         toast.show(a.withdrawnOk, 'info');
         void refreshEntries();
       } catch (error) {
-        toast.show(isAppError(error) ? error.message : liveClaimContent.errors.unknown ?? '', 'danger');
+        toast.show(
+          isAppError(error) ? error.message : (liveClaimContent.errors.unknown ?? ''),
+          'danger',
+        );
         void refresh();
       }
     },

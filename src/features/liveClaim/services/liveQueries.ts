@@ -16,7 +16,11 @@ export async function querySellers(
     supabase.from('public_profiles').select('id, handle, display_name').in('id', ids),
   ]);
   if (shops.error || profiles.error)
-    throw new AppError('load_failed', 'No se pudo cargar al vendedor', shops.error ?? profiles.error);
+    throw new AppError(
+      'load_failed',
+      'No se pudo cargar al vendedor',
+      shops.error ?? profiles.error,
+    );
   const result = new Map<string, LiveSeller>();
   for (const id of ids) {
     const shop = shops.data.find((row) => row.user_id === id);
@@ -45,9 +49,13 @@ export async function queryLiveList(supabase: Client): Promise<LiveListEntry[]> 
   const ids = sessions.map((s) => s.id);
   const [items, sellers] = await Promise.all([
     supabase.from('claim_items').select('session_id, status').in('session_id', ids),
-    querySellers(supabase, sessions.map((s) => s.seller_id)),
+    querySellers(
+      supabase,
+      sessions.map((s) => s.seller_id),
+    ),
   ]);
-  if (items.error) throw new AppError('load_failed', 'No se pudieron contar los artículos', items.error);
+  if (items.error)
+    throw new AppError('load_failed', 'No se pudieron contar los artículos', items.error);
 
   return sessions.flatMap(({ seller_id, ...session }) => {
     const seller = sellers.get(seller_id);
@@ -57,7 +65,8 @@ export async function queryLiveList(supabase: Client): Promise<LiveListEntry[]> 
       {
         session,
         seller,
-        totalCount: own.filter((item) => item.status !== 'hidden' && item.status !== 'withdrawn').length,
+        totalCount: own.filter((item) => item.status !== 'hidden' && item.status !== 'withdrawn')
+          .length,
         availableCount: own.filter((item) => item.status === 'available').length,
       },
     ];

@@ -19,7 +19,11 @@ test.afterAll(async () => {
 });
 
 async function codeOf(sessionId: string) {
-  const { data } = await seller.client.from('claim_sessions').select('code').eq('id', sessionId).single();
+  const { data } = await seller.client
+    .from('claim_sessions')
+    .select('code')
+    .eq('id', sessionId)
+    .single();
   return data!.code as string;
 }
 
@@ -32,7 +36,9 @@ async function loginAs(page: Page, user: TestUser, next: string) {
 }
 
 async function buyerPage(browser: Browser, path: string) {
-  const user = await createTestUser({ displayName: `Comprador ${Math.floor(Math.random() * 1000)}` });
+  const user = await createTestUser({
+    displayName: `Comprador ${Math.floor(Math.random() * 1000)}`,
+  });
   const context = await browser.newContext();
   const page = await context.newPage();
   await loginAs(page, user, path);
@@ -40,7 +46,10 @@ async function buyerPage(browser: Browser, path: string) {
   return { user, page, context };
 }
 
-test('programado: portada con cuenta regresiva, calendario y panel de ayuda (SSR)', async ({ page, request }) => {
+test('programado: portada con cuenta regresiva, calendario y panel de ayuda (SSR)', async ({
+  page,
+  request,
+}) => {
   const live = await createLiveSession(seller, { items: 2, live: false });
   const code = await codeOf(live.sessionId);
   // Antes de empezar el público solo ve los artículos de adelanto (RLS).
@@ -55,8 +64,14 @@ test('programado: portada con cuenta regresiva, calendario y panel de ayuda (SSR
   await expect(page.getByRole('heading', { level: 1, name: 'Claim de prueba' })).toBeVisible();
   await expect(page.getByText('Próximamente').first()).toBeVisible();
   await expect(page.getByText(/Empieza en/)).toBeVisible();
-  await expect(page.getByRole('link', { name: /Google Calendar/ })).toHaveAttribute('href', /calendar\.google\.com/);
-  await expect(page.getByRole('link', { name: /Descargar \.ics/ })).toHaveAttribute('href', `/c/${code}/calendar.ics`);
+  await expect(page.getByRole('link', { name: /Google Calendar/ })).toHaveAttribute(
+    'href',
+    /calendar\.google\.com/,
+  );
+  await expect(page.getByRole('link', { name: /Descargar \.ics/ })).toHaveAttribute(
+    'href',
+    `/c/${code}/calendar.ics`,
+  );
   await expect(page.getByRole('region', { name: '¿Cómo funciona un claim?' })).toBeVisible();
 
   // El descarte se recuerda.
@@ -72,13 +87,17 @@ test('programado: portada con cuenta regresiva, calendario y panel de ayuda (SSR
   expect(await ics.text()).toContain('TRIGGER:-PT10M');
 });
 
-test('un código desconocido muestra la página 404 (con streaming el estado HTTP puede ser 200, con noindex)', async ({ page }) => {
+test('un código desconocido muestra la página 404 (con streaming el estado HTTP puede ser 200, con noindex)', async ({
+  page,
+}) => {
   await page.goto('/c/NOEXISTE');
   await expect(page.getByText('404')).toBeVisible();
   await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute('content', /noindex/);
 });
 
-test('en vivo: artículos, filtros, y un visitante sin sesión va al login con ancla', async ({ page }) => {
+test('en vivo: artículos, filtros, y un visitante sin sesión va al login con ancla', async ({
+  page,
+}) => {
   const live = await createLiveSession(seller, { items: 3 });
   const code = await codeOf(live.sessionId);
   await page.goto(`/c/${code}`);
@@ -100,7 +119,9 @@ test('en vivo: artículos, filtros, y un visitante sin sesión va al login con a
   );
 });
 
-test('dos compradores reclaman casi a la vez: uno gana y el otro lo ve sin recargar', async ({ browser }) => {
+test('dos compradores reclaman casi a la vez: uno gana y el otro lo ve sin recargar', async ({
+  browser,
+}) => {
   test.slow();
   const live = await createLiveSession(seller, { items: 1, autoConfirm: true });
   const code = await codeOf(live.sessionId);
@@ -121,7 +142,9 @@ test('dos compradores reclaman casi a la vez: uno gana y el otro lo ve sin recar
   // Cada uno termina con un estado coherente y sin recargar: uno "Es tuya", el otro "Vendida" sin acciones.
   const won = (p: Page) => p.getByRole('status').filter({ hasText: 'Es tuya' });
   await expect
-    .poll(async () => (await won(a.page).count()) + (await won(b.page).count()), { timeout: 20_000 })
+    .poll(async () => (await won(a.page).count()) + (await won(b.page).count()), {
+      timeout: 20_000,
+    })
     .toBe(1);
   for (const p of [a.page, b.page]) {
     await expect(p.getByText('Vendida', { exact: true })).toBeVisible();
@@ -135,7 +158,11 @@ test('dos compradores reclaman casi a la vez: uno gana y el otro lo ve sin recar
 
 test('comprador: claim, oferta inválida/válida y retiro', async ({ browser }) => {
   test.slow();
-  const live = await createLiveSession(seller, { items: 2, autoConfirm: false, priceCents: 20_000 });
+  const live = await createLiveSession(seller, {
+    items: 2,
+    autoConfirm: false,
+    priceCents: 20_000,
+  });
   const code = await codeOf(live.sessionId);
   const { page, context } = await buyerPage(browser, `/c/${code}`);
   await page.waitForTimeout(2_500);
@@ -176,13 +203,20 @@ test('el vendedor del evento no ve acciones de compra', async ({ browser }) => {
   await context.close();
 });
 
-test('terminado: resumen de vendidos y no vendidos, y el estado cambia sin recargar', async ({ page, browser }) => {
+test('terminado: resumen de vendidos y no vendidos, y el estado cambia sin recargar', async ({
+  page,
+  browser,
+}) => {
   test.slow();
   const live = await createLiveSession(seller, { items: 2, autoConfirm: true });
   const code = await codeOf(live.sessionId);
   const buyer = await buyerPage(browser, `/c/${code}`);
   await buyer.page.waitForTimeout(2_500);
-  await buyer.page.getByRole('listitem').filter({ hasText: 'Carta 1' }).getByRole('button', { name: 'Hacer claim' }).click();
+  await buyer.page
+    .getByRole('listitem')
+    .filter({ hasText: 'Carta 1' })
+    .getByRole('button', { name: 'Hacer claim' })
+    .click();
   await expect(buyer.page.getByRole('status').filter({ hasText: 'Es tuya' })).toBeVisible();
 
   await page.goto(`/c/${code}`);
@@ -208,7 +242,9 @@ test.describe('accesibilidad', () => {
     { name: '360 px', width: 360, height: 740 },
     { name: '1280 px', width: 1280, height: 800 },
   ]) {
-    test(`axe sin violaciones críticas en programado, en vivo y terminado (${viewport.name})`, async ({ page }) => {
+    test(`axe sin violaciones críticas en programado, en vivo y terminado (${viewport.name})`, async ({
+      page,
+    }) => {
       test.slow();
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       const scheduled = await createLiveSession(seller, { items: 2, live: false });
@@ -221,10 +257,14 @@ test.describe('accesibilidad', () => {
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
         await page.waitForTimeout(1_000);
         const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-        const serious = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
+        const serious = results.violations.filter(
+          (v) => v.impact === 'critical' || v.impact === 'serious',
+        );
         expect(serious.map((v) => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
         // Sin scroll horizontal.
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+        expect(
+          await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        ).toBe(true);
       }
     });
   }

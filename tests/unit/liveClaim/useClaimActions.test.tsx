@@ -18,7 +18,9 @@ vi.mock('@/features/liveClaim/services/claimActions.service', () => ({
 
 const { useClaimActions } = await import('@/features/liveClaim/hooks/useClaimActions');
 
-const wrapper = ({ children }: { children: ReactNode }) => <ToastProvider>{children}</ToastProvider>;
+const wrapper = ({ children }: { children: ReactNode }) => (
+  <ToastProvider>{children}</ToastProvider>
+);
 
 function setup(connection: 'online' | 'offline' | 'reconnecting' = 'online') {
   const dispatch = vi.fn();
@@ -40,10 +42,19 @@ beforeEach(() => {
 
 describe('useClaimActions', () => {
   it('claim: marca pendiente de inmediato y al responder registra el intento', async () => {
-    claimItem.mockResolvedValue({ entryId: 'e1', position: 1, itemStatus: 'available', won: false });
+    claimItem.mockResolvedValue({
+      entryId: 'e1',
+      position: 1,
+      itemStatus: 'available',
+      won: false,
+    });
     const { result, dispatch } = setup();
     await act(() => result.current.claim(item({ id: 'a' })));
-    expect(dispatch.mock.calls[0]?.[0]).toMatchObject({ type: 'pendingStart', itemId: 'a', action: { kind: 'claim' } });
+    expect(dispatch.mock.calls[0]?.[0]).toMatchObject({
+      type: 'pendingStart',
+      itemId: 'a',
+      action: { kind: 'claim' },
+    });
     expect(dispatch.mock.calls[1]?.[0]).toMatchObject({
       type: 'pendingDone',
       itemId: 'a',
@@ -59,7 +70,9 @@ describe('useClaimActions', () => {
   });
 
   it('"no disponible": revierte lo optimista y actualiza el estado sin recargar', async () => {
-    claimItem.mockRejectedValue(new AppError('item_not_available', 'Este artículo ya no está disponible.'));
+    claimItem.mockRejectedValue(
+      new AppError('item_not_available', 'Este artículo ya no está disponible.'),
+    );
     const { result, dispatch, refresh } = setup();
     await act(() => result.current.claim(item({ id: 'a' })));
     expect(dispatch).toHaveBeenLastCalledWith({ type: 'pendingFail', itemId: 'a' });
@@ -83,7 +96,9 @@ describe('useClaimActions', () => {
   });
 
   it('oferta: va en centavos; si falla relanza para que el diálogo siga abierto', async () => {
-    makeOffer.mockRejectedValue(new AppError('invalid_amount', 'La oferta debe ser mayor a cero y menor al precio.'));
+    makeOffer.mockRejectedValue(
+      new AppError('invalid_amount', 'La oferta debe ser mayor a cero y menor al precio.'),
+    );
     const { result, dispatch } = setup();
     await expect(act(() => result.current.offer(item({ id: 'a' }), 9_900))).rejects.toThrow();
     expect(makeOffer).toHaveBeenCalledWith('a', 9_900);
@@ -101,7 +116,14 @@ describe('useClaimActions', () => {
     withdrawEntry.mockResolvedValue(undefined);
     const { result, dispatch } = setup();
     await act(() =>
-      result.current.withdraw({ id: 'e1', item_id: 'a', kind: 'claim', amount_cents: 1, status: 'queued', seq: 1 }),
+      result.current.withdraw({
+        id: 'e1',
+        item_id: 'a',
+        kind: 'claim',
+        amount_cents: 1,
+        status: 'queued',
+        seq: 1,
+      }),
     );
     expect(dispatch).toHaveBeenCalledWith({ type: 'entryWithdrawn', entryId: 'e1' });
   });

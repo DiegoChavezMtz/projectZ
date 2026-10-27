@@ -1,6 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { RealtimeHandlers, RealtimeStatus } from '@/features/liveClaim/services/liveRealtime.service';
+import type {
+  RealtimeHandlers,
+  RealtimeStatus,
+} from '@/features/liveClaim/services/liveRealtime.service';
 import type { LiveSnapshot } from '@/features/liveClaim/types';
 import { feedEvent, item, session } from './factories';
 
@@ -41,7 +44,9 @@ const status = (s: RealtimeStatus) => act(() => current().handlers.onStatus(s));
 beforeEach(() => {
   vi.useFakeTimers();
   channels.length = 0;
-  fetchState.mockReset().mockResolvedValue({ session: snapshot.session, items: snapshot.items, feed: snapshot.feed });
+  fetchState
+    .mockReset()
+    .mockResolvedValue({ session: snapshot.session, items: snapshot.items, feed: snapshot.feed });
   fetchMyEntries.mockReset().mockResolvedValue([]);
 });
 afterEach(() => vi.useRealTimers());
@@ -60,8 +65,12 @@ describe('useLiveClaim', () => {
   it('aplica los cambios de Realtime sin duplicar ni retroceder', () => {
     const { result } = renderHook(() => useLiveClaim(snapshot, null));
     act(() => {
-      current().handlers.onItem(item({ id: 'a', status: 'sold', updated_at: '2026-10-26T10:05:00.000Z' }));
-      current().handlers.onItem(item({ id: 'a', status: 'available', updated_at: '2026-10-26T10:01:00.000Z' }));
+      current().handlers.onItem(
+        item({ id: 'a', status: 'sold', updated_at: '2026-10-26T10:05:00.000Z' }),
+      );
+      current().handlers.onItem(
+        item({ id: 'a', status: 'available', updated_at: '2026-10-26T10:01:00.000Z' }),
+      );
       current().handlers.onFeed(feedEvent(3));
       current().handlers.onFeed(feedEvent(2));
       current().handlers.onFeed(feedEvent(3));
@@ -82,7 +91,12 @@ describe('useLiveClaim', () => {
     expect(channels).toHaveLength(1);
 
     // Mientras estuvo caído el servidor siguió avanzando.
-    const serverItem = item({ id: 'a', status: 'sold', leader_display_name: 'Luis', updated_at: '2026-10-26T10:09:00.000Z' });
+    const serverItem = item({
+      id: 'a',
+      status: 'sold',
+      leader_display_name: 'Luis',
+      updated_at: '2026-10-26T10:09:00.000Z',
+    });
     fetchState.mockResolvedValue({
       session: session({ status: 'live', updated_at: '2026-10-26T10:09:00.000Z' }),
       items: [serverItem],
@@ -106,7 +120,10 @@ describe('useLiveClaim', () => {
     await act(async () => void (await vi.advanceTimersByTimeAsync(0)));
     expect(result.current.state.connection).toBe('online');
     expect(fetchState).toHaveBeenCalled();
-    expect(result.current.state.items[0]).toMatchObject({ status: 'sold', leader_display_name: 'Luis' });
+    expect(result.current.state.items[0]).toMatchObject({
+      status: 'sold',
+      leader_display_name: 'Luis',
+    });
     expect(result.current.state.feed.map((e) => e.id)).toEqual([1, 2, 3]);
   });
 

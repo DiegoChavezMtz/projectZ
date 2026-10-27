@@ -8,11 +8,11 @@ export type DeletionBlocker = (userId: string) => Promise<string | null>;
 
 /**
  * Bloqueos activos (docs/spec/auth.md, A15): eventos `live`, cuentas `awaiting_payment`/`payment_review`
- * y entregas sin completar, como comprador o vendedor. Esas tablas llegan en S4 (eventos), S5 y S8
- * (cuentas y entregas): cada sprint agrega aquí su consulta. En S3 no hay nada que consultar.
+ * y entregas sin completar, como comprador o vendedor. Esas tablas llegan en S4 (eventos), S8
+ * (cuentas y entregas): cada sprint agrega aquí su consulta.
  */
 export const deletionBlockers: DeletionBlocker[] = [
-  // S4: un evento en vivo bloquea el borrado del vendedor. Las cuentas y entregas se agregan en S5/S8.
+  // S4: un evento en vivo bloquea el borrado del vendedor. Cuentas y entregas, abajo (S8).
   async (userId) => {
     const { count, error } = await createAdminClient()
       .from('claim_sessions')
@@ -21,6 +21,36 @@ export const deletionBlockers: DeletionBlocker[] = [
       .eq('status', 'live');
     if (error) throw new AppError('delete_failed', 'No se pudo verificar la cuenta', error);
     return (count ?? 0) > 0 ? 'live_session' : null;
+  },
+  // S8: cuentas por cobrar o pagar, guardaditos sin entrega y entregas sin completar, como comprador o vendedor.
+  async (userId) => {
+    const { count, error } = await createAdminClient()
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+      .in('status', ['pending_close', 'awaiting_payment', 'payment_review']);
+    if (error) throw new AppError('delete_failed', 'No se pudo verificar la cuenta', error);
+    return (count ?? 0) > 0 ? 'open_orders' : null;
+  },
+  async (userId) => {
+    const { count, error } = await createAdminClient()
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+      .eq('status', 'paid')
+      .eq('accumulate', true)
+      .is('delivery_id', null);
+    if (error) throw new AppError('delete_failed', 'No se pudo verificar la cuenta', error);
+    return (count ?? 0) > 0 ? 'pending_accumulate' : null;
+  },
+  async (userId) => {
+    const { count, error } = await createAdminClient()
+      .from('deliveries')
+      .select('id', { count: 'exact', head: true })
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+      .in('status', ['requested', 'awaiting_payment', 'payment_review', 'preparing', 'shipped']);
+    if (error) throw new AppError('delete_failed', 'No se pudo verificar la cuenta', error);
+    return (count ?? 0) > 0 ? 'open_deliveries' : null;
   },
 ];
 

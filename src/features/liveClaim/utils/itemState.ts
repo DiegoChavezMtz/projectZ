@@ -1,5 +1,11 @@
 import type { ClaimItem, SessionStatus } from '@/types/claims';
-import type { ItemView, PendingAction, PublicItemState, ViewerEntry, ViewerRelation } from '../types';
+import type {
+  ItemView,
+  PendingAction,
+  PublicItemState,
+  ViewerEntry,
+  ViewerRelation,
+} from '../types';
 
 const OPEN_ENTRY_STATUSES: ViewerEntry['status'][] = ['queued', 'pending'];
 
@@ -70,7 +76,10 @@ export function deriveItemView(input: {
   const state = publicItemState(item);
   const { relation, openEntry } = relationFor(item, viewerId, entries, pending);
 
-  const open = sessionStatus === 'live' && !isOwner && (state === 'available' || state === 'claimed' || state === 'offers');
+  const open =
+    sessionStatus === 'live' &&
+    !isOwner &&
+    (state === 'available' || state === 'claimed' || state === 'offers');
   const busy = relation === 'sending';
   return {
     state,

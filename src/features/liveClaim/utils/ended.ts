@@ -1,7 +1,13 @@
 import type { ClaimItem } from '@/types/claims';
 
 export type EndedSummary = {
-  sold: Array<{ id: string; title: string; priceCents: number; buyerName: string | null; imagePath: string | null }>;
+  sold: Array<{
+    id: string;
+    title: string;
+    priceCents: number;
+    buyerName: string | null;
+    imagePath: string | null;
+  }>;
   unsold: Array<{ id: string; title: string; priceCents: number; imagePath: string | null }>;
 };
 
@@ -22,7 +28,12 @@ export function summarizeEnded(items: ClaimItem[]): EndedSummary {
         imagePath: item.image_path,
       });
     } else if (item.status === 'available') {
-      unsold.push({ id: item.id, title: item.title, priceCents: item.price_cents, imagePath: item.image_path });
+      unsold.push({
+        id: item.id,
+        title: item.title,
+        priceCents: item.price_cents,
+        imagePath: item.image_path,
+      });
     }
   }
   return { sold, unsold };

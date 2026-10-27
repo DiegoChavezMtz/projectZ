@@ -5,7 +5,14 @@ import { Button } from '@/components/atoms/Button';
 import { Text } from '@/components/atoms/Text';
 import type { ClaimItem } from '@/types/claims';
 import { liveClaimContent } from '../../content/es-MX';
-import type { ItemFilter, LiveSnapshot, LiveState, Viewer, ViewerEntry, CategoryView } from '../../types';
+import type {
+  ItemFilter,
+  LiveSnapshot,
+  LiveState,
+  Viewer,
+  ViewerEntry,
+  CategoryView,
+} from '../../types';
 import { filterItems } from '../../utils/filters';
 import { ActivityFeed } from '../ActivityFeed';
 import { ConnectionBanner } from '../ConnectionBanner';

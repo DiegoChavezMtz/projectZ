@@ -1,10 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useResilientChannel } from '@/hooks/useResilientChannel';
 import { liveDataClient } from '../services/liveData.client';
 import { liveRealtimeService } from '../services/liveRealtime.service';
-import type { LiveAction, LiveSnapshot, Viewer, ViewerEntry } from '../types';
-import { backoffDelay } from '../utils/backoff';
+import type { LiveSnapshot, Viewer, ViewerEntry } from '../types';
 import { createInitialState, liveReducer } from '../utils/liveReducer';
 
 const ENTRIES_REFRESH_MS = 300;
@@ -23,23 +23,23 @@ export function useLiveClaim(
 ) {
   const sessionId = snapshot.session.id;
   const viewerId = viewer?.id ?? null;
-  const [state, dispatch] = useReducer(
-    liveReducer,
-    snapshot,
-    (initial) =>
-      createInitialState({
-        session: initial.session,
-        items: initial.items,
-        feed: initial.feed,
-        entries: initialEntries,
-      }),
+  const [state, dispatch] = useReducer(liveReducer, snapshot, (initial) =>
+    createInitialState({
+      session: initial.session,
+      items: initial.items,
+      feed: initial.feed,
+      entries: initialEntries,
+    }),
   );
   const entriesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const refreshEntries = useCallback(async () => {
     if (!viewerId) return;
     try {
-      dispatch({ type: 'entries', entries: await liveDataClient.fetchMyEntries(sessionId, viewerId) });
+      dispatch({
+        type: 'entries',
+        entries: await liveDataClient.fetchMyEntries(sessionId, viewerId),
+      });
     } catch {
       // Se reintenta con el siguiente evento o reconexión.
     }
@@ -61,86 +61,31 @@ export function useLiveClaim(
     }
   }, [sessionId, refreshEntries]);
 
-  useEffect(() => {
-    let disposed = false;
-    let generation = 0;
-    let attempt = 0;
-    let unsubscribe: (() => void) | null = null;
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    const send = (action: LiveAction) => {
-      if (!disposed) dispatch(action);
-    };
-
-    const teardown = () => {
-      generation += 1;
-      unsubscribe?.();
-      unsubscribe = null;
-      if (retryTimer) clearTimeout(retryTimer);
-      retryTimer = null;
-    };
-
-    const scheduleRetry = () => {
-      if (disposed || retryTimer) return;
-      unsubscribe?.();
-      unsubscribe = null;
-      const delay = backoffDelay(attempt);
-      attempt += 1;
-      retryTimer = setTimeout(() => {
-        retryTimer = null;
-        connect();
-      }, delay);
-    };
-
-    function connect() {
-      const mine = (generation += 1);
-      send({ type: 'connection', status: attempt === 0 ? 'connecting' : 'reconnecting' });
-      unsubscribe = liveRealtimeService.subscribe(sessionId, {
-        onItem: (item) => send({ type: 'item', item }),
+  useResilientChannel({
+    channelKey: sessionId,
+    subscribe: (onStatus) =>
+      liveRealtimeService.subscribe(sessionId, {
+        onItem: (item) => dispatch({ type: 'item', item }),
         onFeed: (event) => {
-          send({ type: 'feed', event });
+          dispatch({ type: 'feed', event });
           if (ENTRY_EVENTS.has(event.type)) scheduleEntries();
         },
         onSession: (session) => {
-          send({ type: 'session', session });
+          dispatch({ type: 'session', session });
           if (session.status === 'ended') scheduleEntries();
         },
-        onStatus: (status) => {
-          if (mine !== generation) return; // canal viejo
-          if (status === 'subscribed') {
-            attempt = 0;
-            send({ type: 'connection', status: 'online' });
-            void refresh(); // cubre el hueco entre el snapshot y la suscripción, y las reconexiones
-          } else {
-            send({ type: 'connection', status: 'reconnecting' });
-            scheduleRetry();
-          }
-        },
-      });
-    }
+        onStatus,
+      }),
+    onConnection: (status) => dispatch({ type: 'connection', status }),
+    onSubscribed: () => void refresh(),
+  });
 
-    const onOffline = () => {
-      teardown();
-      send({ type: 'connection', status: 'offline' });
-    };
-    const onOnline = () => {
-      teardown();
-      attempt = 0;
-      connect();
-    };
-
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) onOffline();
-    else connect();
-    window.addEventListener('offline', onOffline);
-    window.addEventListener('online', onOnline);
-
-    return () => {
-      disposed = true;
-      teardown();
-      window.removeEventListener('offline', onOffline);
-      window.removeEventListener('online', onOnline);
+  useEffect(
+    () => () => {
       if (entriesTimer.current) clearTimeout(entriesTimer.current);
-    };
-  }, [sessionId, refresh, scheduleEntries]);
+    },
+    [],
+  );
 
   return { state, dispatch, refresh, refreshEntries };
 }

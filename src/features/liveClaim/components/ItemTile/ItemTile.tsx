@@ -79,7 +79,9 @@ function ItemTileBase({
         deferred && styles.deferred,
         done && styles.done,
         view.relation === 'won' && styles.mine,
-        (view.relation === 'leading' || view.relation === 'queued' || view.relation === 'offered') &&
+        (view.relation === 'leading' ||
+          view.relation === 'queued' ||
+          view.relation === 'offered') &&
           styles.involved,
       )}
       aria-label={c.item.tileLabel(item.title, stateLabel, price)}
@@ -154,7 +156,9 @@ function ItemTileBase({
                 fullWidth
                 onClick={() => view.openEntry && onWithdraw(view.openEntry)}
               >
-                {view.openEntry.kind === 'offer' ? c.actions.withdrawOffer : c.actions.withdrawClaim}
+                {view.openEntry.kind === 'offer'
+                  ? c.actions.withdrawOffer
+                  : c.actions.withdrawClaim}
               </Button>
             ) : null}
           </div>

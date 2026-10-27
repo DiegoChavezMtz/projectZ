@@ -4,7 +4,11 @@ import { publicItemState } from './itemState';
 
 /** Minúsculas y sin acentos, para buscar "pokémon" con "pokemon". */
 export const normalizeText = (value: string): string =>
-  value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 
 export function filterItems(
   items: ClaimItem[],

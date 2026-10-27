@@ -41,6 +41,9 @@ export async function SessionMenu() {
           {authContent.seller.sell}
         </Button>
       )}
+      <Button href="/orders" variant="ghost" size="sm">
+        {authContent.session.myOrders}
+      </Button>
       <Button href="/account" variant="ghost" size="sm">
         <Avatar
           size="sm"

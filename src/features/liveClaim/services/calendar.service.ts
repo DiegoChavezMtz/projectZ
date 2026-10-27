@@ -13,7 +13,9 @@ export const calendarService = {
     const url = `${getSiteUrl()}${sessionPath(session.code)}`;
     return {
       filename: `claim-${session.code}.ics`,
-      body: buildIcs(sessionCalendarEvent(session, url, liveClaimContent.calendar.eventDescription)),
+      body: buildIcs(
+        sessionCalendarEvent(session, url, liveClaimContent.calendar.eventDescription),
+      ),
     };
   },
 };

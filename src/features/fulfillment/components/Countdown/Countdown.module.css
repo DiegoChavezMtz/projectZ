@@ -1,0 +1,18 @@
+.root {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.remaining {
+  font-variant-numeric: tabular-nums;
+}
+
+.soon {
+  color: var(--color-warning);
+}
+
+.overdue {
+  color: var(--color-text-muted);
+  font-style: italic;
+}

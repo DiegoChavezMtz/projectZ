@@ -13,13 +13,22 @@ const ids = (list: typeof items) => list.map((i) => i.id);
 describe('filterItems', () => {
   it('normaliza acentos y mayúsculas', () => {
     expect(normalizeText('  Pokémon ÉX ')).toBe('pokemon ex');
-    expect(ids(filterItems(items, { filter: 'all', query: 'pokemon', entries: [] }))).toEqual(['b']);
-    expect(ids(filterItems(items, { filter: 'all', query: 'gardevoir', entries: [] }))).toEqual(['c']);
-    expect(ids(filterItems(items, { filter: 'all', query: 'POKÉMON', entries: [] }))).toEqual(['b']);
+    expect(ids(filterItems(items, { filter: 'all', query: 'pokemon', entries: [] }))).toEqual([
+      'b',
+    ]);
+    expect(ids(filterItems(items, { filter: 'all', query: 'gardevoir', entries: [] }))).toEqual([
+      'c',
+    ]);
+    expect(ids(filterItems(items, { filter: 'all', query: 'POKÉMON', entries: [] }))).toEqual([
+      'b',
+    ]);
   });
 
   it('por estado', () => {
-    expect(ids(filterItems(items, { filter: 'available', query: '', entries: [] }))).toEqual(['a', 'c']);
+    expect(ids(filterItems(items, { filter: 'available', query: '', entries: [] }))).toEqual([
+      'a',
+      'c',
+    ]);
     expect(ids(filterItems(items, { filter: 'sold', query: '', entries: [] }))).toEqual(['b']);
     expect(ids(filterItems(items, { filter: 'all', query: '', entries: [] }))).toHaveLength(4);
   });

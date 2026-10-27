@@ -1,0 +1,208 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`plantillas de cumplimiento (S8-11) > accumulateNotice: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Confirma el envío de tu guardadito",
+  "text": "¡Hola, Luis!
+
+La vigencia de tu guardadito con Cartas del Centro (3 cuentas) terminó. Confirma tu envío antes del 23 de diciembre de 2026 a las 12:00 p.m. para recibirlo.
+
+Si no lo confirmas, las piezas vuelven al vendedor. Si no puedes recibirlas, también puedes liberarlas desde tus cuentas.
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > accumulateReleased: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Guardadito liberado",
+  "text": "¡Hola, Luis!
+
+Tu guardadito con Cartas del Centro se liberó porque no se confirmó el envío a tiempo. Las piezas volvieron al vendedor. Zlotify no mueve dinero: cualquier reembolso o acuerdo es directo con el vendedor.
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > accumulateReminder: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Tu guardadito vence en 7 días",
+  "text": "¡Hola, Luis!
+
+Tu guardadito con Cartas del Centro (3 cuentas) vence el 20 de diciembre de 2026 a las 12:00 p.m.. Cuando quieras, solicita tu envío desde tus cuentas.
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > deliveryQuoted: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Ya está el costo de tu envío",
+  "text": "¡Hola, Luis!
+
+Cartas del Centro cotizó tu envío en $80.00. Paga y sube tu comprobante antes del 14 de noviembre de 2026 a las 12:00 p.m..
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > deliveryReminder: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Tienes un envío por hacer",
+  "text": "¡Hola, Cartas del Centro!
+
+El envío para Luis debe salir antes del 15 de noviembre de 2026 a las 12:00 p.m.. Márcalo como enviado cuando lo hagas.
+
+Ir a las cuentas: https://zlotify.test/dashboard/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > deliveryRequested: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Luis solicitó su envío",
+  "text": "¡Hola, Cartas del Centro!
+
+Luis solicitó el envío de 2 cuentas. Cotiza el costo de envío para que pueda pagarlo.
+
+Ir a las cuentas: https://zlotify.test/dashboard/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > deliveryShipped: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Tu pedido va en camino",
+  "text": "¡Hola, Luis!
+
+Cartas del Centro envió tu pedido. Confirma cuando lo recibas.
+
+Guía de rastreo: MX123456789
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > orderReady: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Cartas del Centro cerró tu cuenta",
+  "text": "¡Hola, Luis!
+
+Cartas del Centro cerró tu cuenta de «Claim de viernes». El total es $1,850.00. Tienes hasta el 12 de noviembre de 2026 a las 12:00 p.m. para pagar y subir tu comprobante.
+
+Si el vendedor lo habilitó, también puedes elegir el guardadito antes de enviar tu comprobante.
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > paymentConfirmed: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Tu pago fue confirmado",
+  "text": "¡Hola, Luis!
+
+Cartas del Centro confirmó tu pago de «Claim de viernes». Gracias.
+
+Te avisaremos cuando tu pedido esté en camino.
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > paymentRejected: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Tu comprobante necesita otra revisión",
+  "text": "¡Hola, Luis!
+
+Cartas del Centro no pudo confirmar tu comprobante de «Claim de viernes». Motivo: El comprobante no se alcanza a leer
+
+Puedes subir otro comprobante hasta el 13 de noviembre de 2026 a las 12:00 p.m..
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > paymentReminder: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Tu pago vence pronto",
+  "text": "¡Hola, Luis!
+
+Te recordamos que tu cuenta de «Claim de viernes» con Cartas del Centro ($1,850.00) vence el 12 de noviembre de 2026 a las 12:00 p.m.. Si ya pagaste, sube tu comprobante.
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > paymentReview: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Luis subió un comprobante",
+  "text": "¡Hola, Cartas del Centro!
+
+Luis subió un comprobante de «Claim de viernes». Revísalo y confírmalo o recházalo con un motivo.
+
+Ir a las cuentas: https://zlotify.test/dashboard/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
+exports[`plantillas de cumplimiento (S8-11) > unpaidNotice: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Tu cuenta venció sin pago",
+  "text": "¡Hola, Luis!
+
+El plazo de tu cuenta de «Claim de viernes» con Cartas del Centro venció sin comprobante, así que quedó registrada como no pagada.
+
+Si crees que es un error, tienes 7 días para dejar una objeción desde tus cuentas. Se mostrará junto a la marca.
+
+Ver mis cuentas: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;

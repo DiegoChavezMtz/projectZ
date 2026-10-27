@@ -25,6 +25,8 @@ export const serverEnvSchema = z.object({
   TURNSTILE_SECRET_KEY: z.string().min(1),
   // true cuando Captcha protection de Supabase está ON: el token de Turnstile lo valida Supabase (es de un solo uso).
   SUPABASE_CAPTCHA_ENABLED: boolString.optional(),
+  // Protege POST /api/internal/deadlines (plazos y cola de correos de cumplimiento). Sin él, el endpoint responde 503.
+  CRON_SECRET: z.string().min(32, 'debe tener al menos 32 caracteres').optional(),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;

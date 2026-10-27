@@ -16,7 +16,11 @@ describe('reloj', () => {
 
   it('clockOffsetFromSample compensa medio viaje de ida y vuelta', () => {
     // Dispositivo adelantado 5 s; el viaje tardó 200 ms.
-    const offset = clockOffsetFromSample({ serverMs: 100_000, sentAtMs: 105_000, receivedAtMs: 105_200 });
+    const offset = clockOffsetFromSample({
+      serverMs: 100_000,
+      sentAtMs: 105_000,
+      receivedAtMs: 105_200,
+    });
     // Al recibir, el servidor marcaba ~100_100 y el dispositivo 105_200.
     expect(offset).toBe(-5_100);
   });
@@ -36,7 +40,9 @@ describe('reloj', () => {
       minutes: 15,
       seconds: 9,
     });
-    expect(formatRemaining(2 * 86_400_000 + 3 * 3_600_000 + 15 * 60_000 + 9_000)).toBe('2 d 03:15:09');
+    expect(formatRemaining(2 * 86_400_000 + 3 * 3_600_000 + 15 * 60_000 + 9_000)).toBe(
+      '2 d 03:15:09',
+    );
     expect(formatRemaining(3 * 3_600_000 + 5_000)).toBe('03:00:05');
     expect(formatRemaining(15 * 60_000 + 9_000)).toBe('15:09');
     expect(formatRemaining(0)).toBe('00:00');
@@ -44,7 +50,9 @@ describe('reloj', () => {
   });
 
   it('describeRemaining para lectores de pantalla', () => {
-    expect(describeRemaining(2 * 86_400_000 + 3 * 3_600_000 + 15 * 60_000)).toBe('2 días, 3 horas y 15 minutos');
+    expect(describeRemaining(2 * 86_400_000 + 3 * 3_600_000 + 15 * 60_000)).toBe(
+      '2 días, 3 horas y 15 minutos',
+    );
     expect(describeRemaining(60_000)).toBe('1 minuto');
     expect(describeRemaining(30_000)).toBe('0 minutos');
   });

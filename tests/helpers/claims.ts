@@ -78,6 +78,8 @@ export async function createLiveSession(
     startsAt?: string;
     /** ISO; cierre programado (S5-12). */
     closesAt?: string;
+    /** Campos extra del evento (p. ej. allow_accumulate, plazos de cumplimiento). */
+    patch?: Record<string, unknown>;
   } = {},
 ): Promise<LiveSession> {
   const {
@@ -94,6 +96,7 @@ export async function createLiveSession(
         release_mode: releaseMode,
         ...(options.startsAt ? { starts_at: options.startsAt } : {}),
         ...(options.closesAt ? { closes_at: options.closesAt } : {}),
+        ...options.patch,
       }),
     )
     .select('id')

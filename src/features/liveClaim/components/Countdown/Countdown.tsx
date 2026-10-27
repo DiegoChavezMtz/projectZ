@@ -50,7 +50,7 @@ export function Countdown({ target, offsetMs, ready, label, onReach, now = Date.
         return;
       }
       // Alineado al siguiente segundo del servidor.
-      timer = setTimeout(tick, (1000 - (serverNow % 1000)) + 5);
+      timer = setTimeout(tick, 1000 - (serverNow % 1000) + 5);
     };
     tick();
     return () => clearTimeout(timer);

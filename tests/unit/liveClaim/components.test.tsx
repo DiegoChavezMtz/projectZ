@@ -29,7 +29,15 @@ describe('Countdown (tiempo simulado)', () => {
 
   it('cuenta hacia atrás y llega a cero llamando onReach una sola vez', () => {
     const onReach = vi.fn();
-    render(<Countdown target="2026-10-27T00:00:03.000Z" offsetMs={0} ready label="Empieza en" onReach={onReach} />);
+    render(
+      <Countdown
+        target="2026-10-27T00:00:03.000Z"
+        offsetMs={0}
+        ready
+        label="Empieza en"
+        onReach={onReach}
+      />,
+    );
     expect(visibleTime()).toBe('00:03');
     act(() => void vi.advanceTimersByTime(1010));
     expect(visibleTime()).toBe('00:02');
@@ -40,14 +48,18 @@ describe('Countdown (tiempo simulado)', () => {
 
   it('sin drift tras 10 minutos y con el reloj del servidor adelantado', () => {
     // El servidor va 30 s adelante del dispositivo: faltan 10 min menos 30 s.
-    render(<Countdown target="2026-10-27T00:10:00.000Z" offsetMs={30_000} ready label="Cierra en" />);
+    render(
+      <Countdown target="2026-10-27T00:10:00.000Z" offsetMs={30_000} ready label="Cierra en" />,
+    );
     expect(visibleTime()).toBe('09:30');
     act(() => void vi.advanceTimersByTime(9 * 60_000 + 1010));
     expect(visibleTime()).toBe('00:29');
   });
 
   it('si se extiende el cierre, la cuenta sigue con el nuevo objetivo', () => {
-    const { rerender } = render(<Countdown target="2026-10-27T00:00:10.000Z" offsetMs={0} ready label="Cierra en" />);
+    const { rerender } = render(
+      <Countdown target="2026-10-27T00:00:10.000Z" offsetMs={0} ready label="Cierra en" />,
+    );
     expect(visibleTime()).toBe('00:10');
     rerender(<Countdown target="2026-10-27T00:01:00.000Z" offsetMs={0} ready label="Cierra en" />);
     expect(visibleTime()).toBe('01:00');
@@ -55,18 +67,30 @@ describe('Countdown (tiempo simulado)', () => {
 
   it('un cierre ya vencido avisa de inmediato', () => {
     const onReach = vi.fn();
-    render(<Countdown target="2026-10-26T23:00:00.000Z" offsetMs={0} ready label="Cierra en" onReach={onReach} />);
+    render(
+      <Countdown
+        target="2026-10-26T23:00:00.000Z"
+        offsetMs={0}
+        ready
+        label="Cierra en"
+        onReach={onReach}
+      />,
+    );
     expect(onReach).toHaveBeenCalledTimes(1);
   });
 
   it('sin reloj medido solo muestra la fecha', () => {
-    render(<Countdown target="2026-10-27T02:00:00.000Z" offsetMs={0} ready={false} label="Empieza en" />);
+    render(
+      <Countdown target="2026-10-27T02:00:00.000Z" offsetMs={0} ready={false} label="Empieza en" />,
+    );
     expect(screen.queryByText(/^\d{2}:\d{2}/)).toBeNull();
     expect(screen.getByText(/octubre de 2026/)).toBeInTheDocument();
   });
 
   it('no usa animaciones (respeta prefers-reduced-motion por construcción)', () => {
-    const { container } = render(<Countdown target="2026-10-27T00:00:30.000Z" offsetMs={0} ready label="x" />);
+    const { container } = render(
+      <Countdown target="2026-10-27T00:00:30.000Z" offsetMs={0} ready label="x" />,
+    );
     expect(container.querySelector('[class*="pulse"], [style*="animation"]')).toBeNull();
   });
 });
@@ -77,13 +101,17 @@ describe('HowItWorksPanel', () => {
   it('aparece, se descarta y no reaparece en la siguiente visita', async () => {
     const user = userEvent.setup();
     const first = render(<HowItWorksPanel showGuardadito={false} />);
-    expect(await screen.findByRole('region', { name: '¿Cómo funciona un claim?' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('region', { name: '¿Cómo funciona un claim?' }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Entendido' }));
     expect(screen.queryByRole('region', { name: '¿Cómo funciona un claim?' })).toBeNull();
     first.unmount();
 
     render(<HowItWorksPanel showGuardadito={false} />);
-    expect(await screen.findByRole('button', { name: '¿Cómo funciona un claim?' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: '¿Cómo funciona un claim?' }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: '¿Cómo funciona un claim?' })).toBeNull();
   });
 
@@ -121,7 +149,14 @@ describe('HowItWorksPanel', () => {
 describe('EndedView', () => {
   it('muestra vendidos con nombre público y no filtra datos privados', () => {
     const items = [
-      item({ id: 'a', title: 'Charizard ex', status: 'sold', leader_display_name: 'Luis', leader_user_id: 'uuid-privado', leader_entry_id: 'entry-secreto' }),
+      item({
+        id: 'a',
+        title: 'Charizard ex',
+        status: 'sold',
+        leader_display_name: 'Luis',
+        leader_user_id: 'uuid-privado',
+        leader_entry_id: 'entry-secreto',
+      }),
       item({ id: 'b', title: 'Eevee', status: 'available', price_cents: 5_000 }),
     ];
     const { container } = render(
@@ -142,7 +177,10 @@ describe('EndedView', () => {
 
 describe('ItemTile', () => {
   const handlers = { onClaim: vi.fn(), onOffer: vi.fn(), onWithdraw: vi.fn() };
-  const renderTile = (patch: Parameters<typeof item>[0], opts: { viewerId?: string | null; entries?: ReturnType<typeof entry>[] } = {}) => {
+  const renderTile = (
+    patch: Parameters<typeof item>[0],
+    opts: { viewerId?: string | null; entries?: ReturnType<typeof entry>[] } = {},
+  ) => {
     const it = item(patch);
     const view = deriveItemView({
       item: it,
@@ -177,7 +215,13 @@ describe('ItemTile', () => {
   });
 
   it('muestra al líder con datos mínimos de reputación', () => {
-    renderTile({ leader_entry_id: 'e', leader_user_id: 'x', leader_handle: 'luis', leader_display_name: 'Luis', leader_wins_count: 3 });
+    renderTile({
+      leader_entry_id: 'e',
+      leader_user_id: 'x',
+      leader_handle: 'luis',
+      leader_display_name: 'Luis',
+      leader_wins_count: 3,
+    });
     expect(screen.getByText('Reclamada')).toBeInTheDocument();
     expect(screen.getByText(/Por Luis · 3 claims ganados/)).toBeInTheDocument();
   });
@@ -207,7 +251,12 @@ describe('ConnectionBanner y ActivityFeed', () => {
   });
 
   it('el feed lista los eventos con texto legible', () => {
-    render(<ActivityFeed events={[feedEvent(1), feedEvent(2, { type: 'item_sold', actor_display_name: 'Ana' })]} noun={category.itemLabels} />);
+    render(
+      <ActivityFeed
+        events={[feedEvent(1), feedEvent(2, { type: 'item_sold', actor_display_name: 'Ana' })]}
+        noun={category.itemLabels}
+      />,
+    );
     expect(screen.getByText('Luis hizo claim de «Charizard ex».')).toBeInTheDocument();
     expect(screen.getByText('«Charizard ex» pasó a Ana.')).toBeInTheDocument();
   });

@@ -84,6 +84,13 @@ export async function ClaimsListView({ status }: { status?: string }) {
                         {c.edit}
                       </Button>
                     ) : null}
+                    {session.status === 'scheduled' ||
+                    session.status === 'live' ||
+                    session.status === 'ended' ? (
+                      <Button href={`/dashboard/claims/${session.id}/live`} size="sm">
+                        {c.console}
+                      </Button>
+                    ) : null}
                     {session.status !== 'cancelled' ? (
                       <Button
                         href={`/dashboard/claims/${session.id}/preview`}

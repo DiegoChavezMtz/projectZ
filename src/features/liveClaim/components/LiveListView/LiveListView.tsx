@@ -57,7 +57,11 @@ async function LiveList() {
                   {seller.city ? ` · ${seller.city}` : ''}
                 </Text>
                 <Text size="sm">
-                  {c.available(availableCount, totalCount, getCategory(session.category).itemLabels.plural)}
+                  {c.available(
+                    availableCount,
+                    totalCount,
+                    getCategory(session.category).itemLabels.plural,
+                  )}
                 </Text>
                 {session.started_at ? (
                   <Text size="sm" tone="muted">

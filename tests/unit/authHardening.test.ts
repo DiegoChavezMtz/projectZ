@@ -99,7 +99,7 @@ describe('logs sin códigos ni tokens', () => {
       }
     }
     const allowed =
-      /^[^:]+: console\.error\( ?(`\[auth\] \$\{purpose\}_request_failed`|'\[auth\] [a-z_]+'), error instanceof AppError \? error\.code : 'unknown',? ?\);$/;
+      /^[^:]+: console\.error\( ?(`\[auth\] \$\{purpose\}_request_failed`|'\[(?:auth|notify)\] [a-z_]+'), error instanceof AppError \? error\.code : 'unknown',? ?\);$/;
     expect(calls.length).toBeGreaterThan(0);
     for (const call of calls) expect(call).toMatch(allowed);
   });

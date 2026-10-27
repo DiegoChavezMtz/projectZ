@@ -28,7 +28,15 @@ type Props = {
 };
 
 /** Portada antes de empezar: horario, cuenta regresiva, reglas, calendario y adelanto de artículos. */
-export function ScheduledView({ state, seller, viewer, isOwner, category, eventUrl, clock }: Props) {
+export function ScheduledView({
+  state,
+  seller,
+  viewer,
+  isOwner,
+  category,
+  eventUrl,
+  clock,
+}: Props) {
   const { session, items } = state;
   const [startReached, setStartReached] = useState(false);
 
@@ -79,7 +87,10 @@ export function ScheduledView({ state, seller, viewer, isOwner, category, eventU
         </section>
       ) : null}
 
-      <CalendarButtons event={sessionCalendarEvent(session, eventUrl, c.calendar.eventDescription)} code={session.code} />
+      <CalendarButtons
+        event={sessionCalendarEvent(session, eventUrl, c.calendar.eventDescription)}
+        code={session.code}
+      />
 
       <HowItWorksPanel showGuardadito={session.allow_accumulate} />
 

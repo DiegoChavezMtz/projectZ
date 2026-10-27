@@ -13,12 +13,18 @@ export type CalendarEvent = {
   url: string;
 };
 
-const stamp = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+const stamp = (date: Date) =>
+  date
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}/, '');
 
 export function eventEnd(event: CalendarEvent): Date {
   const start = new Date(event.startsAt);
   if (event.closesAt) return new Date(event.closesAt);
-  return new Date(start.getTime() + (event.expectedDurationMinutes ?? DEFAULT_EVENT_MINUTES) * MINUTE);
+  return new Date(
+    start.getTime() + (event.expectedDurationMinutes ?? DEFAULT_EVENT_MINUTES) * MINUTE,
+  );
 }
 
 const detailsText = (event: CalendarEvent) =>

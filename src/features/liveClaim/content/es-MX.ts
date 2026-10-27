@@ -69,7 +69,8 @@ export const liveClaimContent = {
       required: 'Escribe un monto.',
       invalid: 'Escribe un monto válido en pesos, por ejemplo 150 o 150.50.',
       tooLow: 'La oferta debe ser mayor a cero.',
-      tooHigh: 'La oferta debe ser menor al precio publicado. Para pagar el precio completo, haz claim.',
+      tooHigh:
+        'La oferta debe ser menor al precio publicado. Para pagar el precio completo, haz claim.',
     },
   },
   filters: {
@@ -161,7 +162,8 @@ export const liveClaimContent = {
     nothingUnsold: 'Se vendió todo.',
     publishedPrice: 'Precio publicado',
     to: (name: string) => `Para ${name}`,
-    thanks: 'Gracias por participar. Si ganaste algo, tu cuenta aparecerá en cuanto el vendedor la prepare.',
+    thanks:
+      'Gracias por participar. Si ganaste algo, tu cuenta aparecerá en cuanto el vendedor la prepare.',
   },
   howItWorks: {
     // TODO_COPY: texto provisional tomado de coordinacion/entregas/marketing/guia-claim.md (v1).

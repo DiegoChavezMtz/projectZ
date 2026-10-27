@@ -21,7 +21,11 @@ export const liveDataClient = {
         .limit(FEED_LIMIT),
     ]);
     if (session.error || items.error || feed.error || !session.data)
-      throw new AppError('load_failed', 'No se pudo actualizar el claim', session.error ?? items.error ?? feed.error);
+      throw new AppError(
+        'load_failed',
+        'No se pudo actualizar el claim',
+        session.error ?? items.error ?? feed.error,
+      );
     return { session: session.data, items: items.data, feed: [...feed.data].reverse() };
   },
 
@@ -40,7 +44,8 @@ export const liveDataClient = {
     const sentAtMs = Date.now();
     const { data, error } = await createClient().rpc('server_now');
     const receivedAtMs = Date.now();
-    if (error || !data) throw new AppError('clock_failed', 'No se pudo leer la hora del servidor', error);
+    if (error || !data)
+      throw new AppError('clock_failed', 'No se pudo leer la hora del servidor', error);
     return { serverMs: Date.parse(data), sentAtMs, receivedAtMs };
   },
 };

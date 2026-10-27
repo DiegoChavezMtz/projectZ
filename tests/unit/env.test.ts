@@ -104,9 +104,17 @@ describe('env.public (validación ligera, sin Zod)', () => {
   });
 
   it('rechaza lo que el esquema rechaza, con el mismo formato de mensaje', async () => {
-    await expect(load({ NEXT_PUBLIC_SUPABASE_URL: undefined })).rejects.toThrow(/NEXT_PUBLIC_SUPABASE_URL: falta/);
-    await expect(load({ NEXT_PUBLIC_SUPABASE_URL: 'no es url' })).rejects.toThrow(/NEXT_PUBLIC_SUPABASE_URL: inválida/);
-    await expect(load({ NEXT_PUBLIC_SUPABASE_ANON_KEY: undefined })).rejects.toThrow(/NEXT_PUBLIC_SUPABASE_ANON_KEY: falta/);
-    expect(publicEnvSchema.safeParse({ ...valid, NEXT_PUBLIC_SUPABASE_URL: 'no es url' }).success).toBe(false);
+    await expect(load({ NEXT_PUBLIC_SUPABASE_URL: undefined })).rejects.toThrow(
+      /NEXT_PUBLIC_SUPABASE_URL: falta/,
+    );
+    await expect(load({ NEXT_PUBLIC_SUPABASE_URL: 'no es url' })).rejects.toThrow(
+      /NEXT_PUBLIC_SUPABASE_URL: inválida/,
+    );
+    await expect(load({ NEXT_PUBLIC_SUPABASE_ANON_KEY: undefined })).rejects.toThrow(
+      /NEXT_PUBLIC_SUPABASE_ANON_KEY: falta/,
+    );
+    expect(
+      publicEnvSchema.safeParse({ ...valid, NEXT_PUBLIC_SUPABASE_URL: 'no es url' }).success,
+    ).toBe(false);
   });
 });

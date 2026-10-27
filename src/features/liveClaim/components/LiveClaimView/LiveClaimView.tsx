@@ -36,7 +36,11 @@ export function LiveClaimView(props: Props) {
 }
 
 function LiveClaimScreen({ snapshot, viewer, isOwner, category, initialEntries, eventUrl }: Props) {
-  const { state, dispatch, refresh, refreshEntries } = useLiveClaim(snapshot, viewer, initialEntries);
+  const { state, dispatch, refresh, refreshEntries } = useLiveClaim(
+    snapshot,
+    viewer,
+    initialEntries,
+  );
   const clock = useServerClock(snapshot.serverNow);
   const code = state.session.code;
   const router = useRouter();

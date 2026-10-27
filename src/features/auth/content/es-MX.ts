@@ -139,6 +139,8 @@ export const authContent = {
     dashboardText: 'Crea tus claims, agrega tus artículos y compártelos con tus compradores.',
     dashboardClaims: 'Mis claims',
     dashboardEdit: 'Editar mi perfil',
+    dashboardOrders: 'Cuentas y envíos',
+    dashboardPayment: 'Datos de pago',
   },
   security: {
     title: 'Seguridad',
@@ -212,6 +214,7 @@ export const authContent = {
   session: {
     menuLabel: 'Menú de usuario',
     account: 'Mi cuenta',
+    myOrders: 'Mis cuentas',
   },
   validation: {
     emailInvalid: 'Escribe un correo válido.',

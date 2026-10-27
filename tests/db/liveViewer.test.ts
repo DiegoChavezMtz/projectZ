@@ -38,40 +38,70 @@ afterAll(async () => {
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function codeOf(sessionId: string) {
-  const { data } = await seller.client.from('claim_sessions').select('code').eq('id', sessionId).single();
+  const { data } = await seller.client
+    .from('claim_sessions')
+    .select('code')
+    .eq('id', sessionId)
+    .single();
   return data!.code;
 }
 
 /** Cliente anónimo que aplica los tres `postgres_changes` con el mismo reducer que usa el visor. */
-async function watch(initial: { session: ClaimSession; items: ClaimItem[]; feed: SessionFeedEvent[] }) {
+async function watch(initial: {
+  session: ClaimSession;
+  items: ClaimItem[];
+  feed: SessionFeedEvent[];
+}) {
   let state = createInitialState(initial);
   const client = anonClient();
   const id = initial.session.id;
   const channel = client
     .channel(`viewer-${id}-${Math.random()}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'claim_items', filter: `session_id=eq.${id}` }, (p) => {
-      if (p.eventType !== 'DELETE') state = liveReducer(state, { type: 'item', item: p.new as ClaimItem });
-    })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'session_feed', filter: `session_id=eq.${id}` }, (p) => {
-      state = liveReducer(state, { type: 'feed', event: p.new as SessionFeedEvent });
-    })
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'claim_sessions', filter: `id=eq.${id}` }, (p) => {
-      state = liveReducer(state, { type: 'session', session: p.new as ClaimSession });
-    });
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'claim_items', filter: `session_id=eq.${id}` },
+      (p) => {
+        if (p.eventType !== 'DELETE')
+          state = liveReducer(state, { type: 'item', item: p.new as ClaimItem });
+      },
+    )
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'session_feed', filter: `session_id=eq.${id}` },
+      (p) => {
+        state = liveReducer(state, { type: 'feed', event: p.new as SessionFeedEvent });
+      },
+    )
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'claim_sessions', filter: `id=eq.${id}` },
+      (p) => {
+        state = liveReducer(state, { type: 'session', session: p.new as ClaimSession });
+      },
+    );
   channels.push({ client, channel });
   await new Promise<void>((resolve, reject) => {
     channel.subscribe((status) => {
       if (status === 'SUBSCRIBED') resolve();
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') reject(new Error(`realtime: ${status}`));
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT')
+        reject(new Error(`realtime: ${status}`));
     });
   });
   await wait(1_500);
-  return { get state() { return state; } };
+  return {
+    get state() {
+      return state;
+    },
+  };
 }
 
 describe('visor: realtime', () => {
   it('dos clientes convergen al mismo estado final tras una ráfaga de acciones', async () => {
-    const live = await createLiveSession(seller, { items: 4, autoConfirm: false, priceCents: 20_000 });
+    const live = await createLiveSession(seller, {
+      items: 4,
+      autoConfirm: false,
+      priceCents: 20_000,
+    });
     const snapshot = await snapshotService.getSnapshot(await codeOf(live.sessionId));
     expect(snapshot).not.toBeNull();
     const base = { session: snapshot!.session, items: snapshot!.items, feed: snapshot!.feed };
@@ -79,11 +109,16 @@ describe('visor: realtime', () => {
 
     // Ráfaga: todos reclaman todo a la vez, más ofertas y retiros.
     await Promise.all([
-      ...buyers.flatMap((buyer) => live.itemIds.map((id) => rpc(buyer.client, 'claim_item', { p_item_id: id }))),
+      ...buyers.flatMap((buyer) =>
+        live.itemIds.map((id) => rpc(buyer.client, 'claim_item', { p_item_id: id })),
+      ),
       rpc(buyers[0]!.client, 'make_offer', { p_item_id: live.itemIds[1], p_amount_cents: 10_000 }),
       rpc(buyers[1]!.client, 'make_offer', { p_item_id: live.itemIds[2], p_amount_cents: 12_000 }),
     ]);
-    await rpc(seller.client, 'post_announcement', { p_session_id: live.sessionId, p_text: 'Ráfaga lista' });
+    await rpc(seller.client, 'post_announcement', {
+      p_session_id: live.sessionId,
+      p_text: 'Ráfaga lista',
+    });
 
     const admin = adminClient();
     const truth = async () => {
@@ -91,10 +126,18 @@ describe('visor: realtime', () => {
         admin.from('claim_items').select('*').eq('session_id', live.sessionId).order('position'),
         admin.from('session_feed').select('id').eq('session_id', live.sessionId).order('id'),
       ]);
-      return { items: items.data as ClaimItem[], feedIds: (feed.data ?? []).map((e) => e.id as number) };
+      return {
+        items: items.data as ClaimItem[],
+        feedIds: (feed.data ?? []).map((e) => e.id as number),
+      };
     };
     const summarize = (items: ClaimItem[]) =>
-      items.map((i) => ({ id: i.id, state: publicItemState(i), leader: i.leader_user_id, offers: i.offer_count }));
+      items.map((i) => ({
+        id: i.id,
+        state: publicItemState(i),
+        leader: i.leader_user_id,
+        offers: i.offer_count,
+      }));
 
     let expected = await truth();
     for (let i = 0; i < 40; i++) {
@@ -128,7 +171,11 @@ describe('visor: snapshot, vendedor y calendario', () => {
   it('el borrador solo lo ve su dueño; el cancelado nadie', async () => {
     const { data: draft } = await seller.client
       .from('claim_sessions')
-      .insert({ seller_id: seller.user.id, title: 'Borrador', starts_at: new Date(Date.now() + 86_400_000).toISOString() })
+      .insert({
+        seller_id: seller.user.id,
+        title: 'Borrador',
+        starts_at: new Date(Date.now() + 86_400_000).toISOString(),
+      })
       .select('id, code')
       .single();
 
@@ -176,7 +223,11 @@ describe('visor: snapshot, vendedor y calendario', () => {
 
     const { data: draft } = await seller.client
       .from('claim_sessions')
-      .insert({ seller_id: seller.user.id, title: 'Borrador ics', starts_at: new Date(Date.now() + 86_400_000).toISOString() })
+      .insert({
+        seller_id: seller.user.id,
+        title: 'Borrador ics',
+        starts_at: new Date(Date.now() + 86_400_000).toISOString(),
+      })
       .select('code')
       .single();
     expect(await calendarService.getIcs(draft!.code)).toBeNull();

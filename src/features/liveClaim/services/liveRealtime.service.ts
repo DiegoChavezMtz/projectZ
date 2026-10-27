@@ -20,19 +20,34 @@ export const liveRealtimeService = {
       .channel(`live-claim:${sessionId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'claim_items', filter: `session_id=eq.${sessionId}` },
+        {
+          event: '*',
+          schema: 'public',
+          table: 'claim_items',
+          filter: `session_id=eq.${sessionId}`,
+        },
         (payload) => {
           if (payload.eventType !== 'DELETE') handlers.onItem(payload.new as ClaimItem);
         },
       )
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'session_feed', filter: `session_id=eq.${sessionId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'session_feed',
+          filter: `session_id=eq.${sessionId}`,
+        },
         (payload) => handlers.onFeed(payload.new as SessionFeedEvent),
       )
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'claim_sessions', filter: `id=eq.${sessionId}` },
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'claim_sessions',
+          filter: `id=eq.${sessionId}`,
+        },
         (payload) => handlers.onSession(payload.new as ClaimSession),
       )
       .subscribe((status) => {

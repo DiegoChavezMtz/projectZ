@@ -56,8 +56,7 @@ export type LiveSnapshot = {
 };
 
 export const FEED_LIMIT = 50;
-/** Máximo de eventos del feed que el cliente conserva en memoria. */
-export const FEED_MEMORY_LIMIT = 200;
+export { FEED_MEMORY_LIMIT } from '@/utils/liveMerge';
 
 type EntryRow = Database['public']['Tables']['claim_entries']['Row'];
 

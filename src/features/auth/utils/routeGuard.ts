@@ -2,7 +2,7 @@ import { sanitizeNextPath } from './nextPath';
 
 // Reglas de redirección de docs/spec/auth.md: sesión, rutas protegidas y términos aceptados.
 // El rol de vendedor lo verifica `requireSeller()` en el servidor (necesita consultar la base).
-const PROTECTED_PREFIXES = ['/account', '/dashboard', '/onboarding'];
+const PROTECTED_PREFIXES = ['/account', '/dashboard', '/onboarding', '/orders'];
 const GUEST_ONLY_PATHS = ['/login', '/signup'];
 const TERMS_PATH = '/onboarding/terms';
 /** Con términos pendientes se puede leer lo legal y cerrar sesión; el resto lleva a aceptarlos. */

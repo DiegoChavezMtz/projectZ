@@ -81,14 +81,18 @@ describe('buildIcs', () => {
   it('pliega líneas largas sin partir caracteres', () => {
     const long = buildIcs({ ...event, title: 'Ñandú '.repeat(40) });
     expect(() => parseIcs(long)).not.toThrow();
-    expect(prop(parseIcs(long).children[0]!.children[0]!, 'SUMMARY')).toBe(`${'Ñandú '.repeat(40)}`);
+    expect(prop(parseIcs(long).children[0]!.children[0]!, 'SUMMARY')).toBe(
+      `${'Ñandú '.repeat(40)}`,
+    );
   });
 });
 
 describe('eventEnd', () => {
   it('usa el cierre, luego la duración esperada y luego 60 minutos', () => {
     expect(eventEnd(event).toISOString()).toBe('2026-10-31T14:00:00.000Z');
-    expect(eventEnd({ ...event, closesAt: null, expectedDurationMinutes: 90 }).toISOString()).toBe('2026-10-30T03:30:00.000Z');
+    expect(eventEnd({ ...event, closesAt: null, expectedDurationMinutes: 90 }).toISOString()).toBe(
+      '2026-10-30T03:30:00.000Z',
+    );
     expect(eventEnd({ ...event, closesAt: null }).toISOString()).toBe('2026-10-30T03:00:00.000Z');
   });
 });
