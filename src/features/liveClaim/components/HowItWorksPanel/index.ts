@@ -1,0 +1,1 @@
+export { HowItWorksPanel } from './HowItWorksPanel';

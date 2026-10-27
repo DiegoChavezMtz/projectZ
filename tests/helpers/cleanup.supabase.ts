@@ -1,5 +1,6 @@
 import { TEST_EMAIL_DOMAIN } from './users';
 import type { CleanupStore } from './cleanup';
+import { deleteEngineData } from './engineCleanup';
 import { adminClient } from './supabase';
 
 // 42P01 / PGRST205: la tabla aún no existe (antes de las migraciones de S2). No es un error.
@@ -30,8 +31,8 @@ export function supabaseCleanupStore(): CleanupStore {
       return flags;
     },
     async deleteUser(id) {
-      // Eventos de prueba (y sus artículos, en cascada) antes que el vendedor.
-      await admin.from('claim_sessions').delete().eq('seller_id', id).eq('is_test', true);
+      // Claims ganados, eventos de prueba (y sus artículos, en cascada) e intentos antes que el usuario.
+      await deleteEngineData(admin, [id]);
       const { error } = await admin.auth.admin.deleteUser(id);
       if (error && error.status !== 404) throw error;
       // Sin FK a auth.users (migración 20261024120000) el perfil sobrevive al usuario: solo si es de prueba.

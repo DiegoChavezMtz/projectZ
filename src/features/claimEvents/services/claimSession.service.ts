@@ -86,6 +86,19 @@ export const claimSessionService = {
     unwrap(data as RpcResult | null, error);
   },
 
+  /**
+   * `set_session_close`: mueve o quita el cierre programado de un evento publicado (programado o en vivo).
+   * `null` solo se acepta en `scheduled`. Con fecha inválida lanza `validation_failed`.
+   */
+  async setSessionClose(id: string, closesAt: string | null): Promise<void> {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('set_session_close', {
+      p_session_id: id,
+      p_closes_at: closesAt as string,
+    });
+    unwrap(data as RpcResult | null, error);
+  },
+
   /** `publish_session`: devuelve el código público. Con evento incompleto lanza `validation_failed` con `reasons`. */
   async publish(id: string): Promise<string> {
     const supabase = await createClient();

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCategory } from '@/types/categories';
 import { AppError } from '@/utils/errors';
+import { claimEventsContent } from '../content/es-MX';
 import type { ActionState } from '../types';
 import { failure, fieldErrors, optionalFile, text } from '../utils/formData';
 import { ITEM_IMAGE_MAX_BYTES } from '../utils/image';
@@ -13,7 +14,7 @@ import {
   sessionFormSchema,
   toSessionColumns,
 } from '../utils/session.schemas';
-import { areRulesLocked, isSessionEditable } from '../utils/session.utils';
+import { areRulesLocked, isSessionEditable, sameMinute } from '../utils/session.utils';
 import { claimItemService } from './claimItem.service';
 import { claimSessionService } from './claimSession.service';
 import { requireSellerId } from './seller.context';
@@ -25,6 +26,7 @@ const sessionInput = (formData: FormData) => ({
   description: text(formData, 'description'),
   rules: text(formData, 'rules'),
   startsAt: text(formData, 'startsAt'),
+  closesAt: text(formData, 'closesAt'),
   expectedDurationMinutes: text(formData, 'expectedDurationMinutes'),
   releaseMode: text(formData, 'releaseMode'),
   autoConfirm: formData.get('autoConfirm'),
@@ -32,6 +34,7 @@ const sessionInput = (formData: FormData) => ({
   paymentDeadlineHours: text(formData, 'paymentDeadlineHours'),
   shippingDeadlineHours: text(formData, 'shippingDeadlineHours'),
   allowAccumulate: formData.get('allowAccumulate'),
+  accumulateDays: text(formData, 'accumulateDays'),
 });
 
 const refresh = (sessionId: string) => {
@@ -76,7 +79,16 @@ export async function updateSessionAction(
     return failure('validation', { fieldErrors: fieldErrors(parsed.error.issues) });
   try {
     await claimSessionService.update(id, toSessionColumns(parsed.data));
+    // Publicado: el cierre solo se mueve por la RPC, y solo si cambió (el valor guardado puede ya ser pasado).
+    if (session.status !== 'draft' && !sameMinute(parsed.data.closesAt, session.closes_at)) {
+      await claimSessionService.setSessionClose(id, parsed.data.closesAt);
+    }
   } catch (error) {
+    if (error instanceof AppError && error.code === 'validation_failed') {
+      return failure('validation', {
+        fieldErrors: { closesAt: claimEventsContent.validation.closesInvalid },
+      });
+    }
     return failure(errorCode(error));
   }
   refresh(id);

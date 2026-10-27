@@ -25,6 +25,4 @@ export const WEBP_QUALITIES = [0.85, 0.75, 0.65, 0.5] as const;
 export const itemImagePath = (userId: string, sessionId: string, id: string) =>
   `${userId}/${sessionId}/${id}.webp`;
 
-/** URL pública de una imagen guardada en `item-images`. */
-export const itemImageUrl = (supabaseUrl: string, path: string | null | undefined) =>
-  path ? `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/item-images/${path}` : null;
+export { itemImageUrl } from '@/utils/image';

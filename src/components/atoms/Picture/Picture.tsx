@@ -9,10 +9,12 @@ type Props = {
   className?: string;
   /** Texto del recuadro cuando aún no hay imagen. */
   placeholder?: string;
+  /** Imagen principal de la pantalla: se carga sin diferir. */
+  priority?: boolean;
 };
 
 /** Imagen de artículo con relación de aspecto fija (evita saltos de layout). */
-export function Picture({ src, alt, aspect, className, placeholder }: Props) {
+export function Picture({ src, alt, aspect, className, placeholder, priority = false }: Props) {
   return (
     <div
       className={clsx(styles.root, className)}
@@ -20,7 +22,14 @@ export function Picture({ src, alt, aspect, className, placeholder }: Props) {
     >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element -- WebP ya optimizado (≤ 1600 px) en el bucket público o blob local.
-        <img className={styles.image} src={src} alt={alt} loading="lazy" decoding="async" />
+        <img
+          className={styles.image}
+          src={src}
+          alt={alt}
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : undefined}
+          decoding="async"
+        />
       ) : placeholder ? (
         <span className={styles.placeholder}>{placeholder}</span>
       ) : null}

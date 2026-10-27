@@ -13,3 +13,7 @@ export function fitWithin(
     height: Math.max(1, Math.round(height * scale)),
   };
 }
+
+/** URL pública de una imagen guardada en el bucket `item-images` (la usan el editor y el visor). */
+export const itemImageUrl = (supabaseUrl: string, path: string | null | undefined) =>
+  path ? `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/item-images/${path}` : null;

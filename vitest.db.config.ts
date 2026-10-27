@@ -14,6 +14,7 @@ export default defineConfig({
     include: ['tests/db/**/*.test.ts'],
     setupFiles: ['./tests/db/setup.ts'],
     testTimeout: 30_000,
+    hookTimeout: 180_000, // limpieza de decenas de usuarios de prueba
     fileParallelism: false,
   },
 });

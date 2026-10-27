@@ -1,0 +1,76 @@
+import type { ClaimItem, ClaimSession, SessionFeedEvent } from '@/types/claims';
+import type { ViewerEntry } from '@/features/liveClaim/types';
+
+export const item = (patch: Partial<ClaimItem> = {}): ClaimItem => ({
+  attributes: { language: 'es', condition: 'NM', set_name: '151' },
+  category: 'tcg',
+  created_at: '2026-10-26T10:00:00.000Z',
+  id: 'item-1',
+  image_path: null,
+  is_featured: false,
+  is_preview: false,
+  leader_at: null,
+  leader_display_name: null,
+  leader_entry_id: null,
+  leader_handle: null,
+  leader_user_id: null,
+  leader_wins_count: null,
+  offer_count: 0,
+  position: 1,
+  price_cents: 15_000,
+  released_at: null,
+  session_id: 'session-1',
+  status: 'available',
+  title: 'Charizard ex',
+  updated_at: '2026-10-26T10:00:00.000Z',
+  ...patch,
+});
+
+export const session = (patch: Partial<ClaimSession> = {}): ClaimSession => ({
+  accumulate_days: 60,
+  allow_accumulate: false,
+  auto_confirm: false,
+  category: 'tcg',
+  close_deadline_hours: 24,
+  closes_at: null,
+  code: 'ABC123',
+  created_at: '2026-10-20T10:00:00.000Z',
+  description: null,
+  ended_at: null,
+  expected_duration_minutes: null,
+  id: 'session-1',
+  is_test: true,
+  payment_deadline_hours: 48,
+  release_mode: 'all_at_start',
+  rules: null,
+  seller_id: 'seller-1',
+  shipping_deadline_hours: 72,
+  started_at: null,
+  starts_at: '2026-10-27T02:00:00.000Z',
+  status: 'scheduled',
+  title: 'Claim de viernes',
+  updated_at: '2026-10-26T10:00:00.000Z',
+  ...patch,
+});
+
+export const feedEvent = (id: number, patch: Partial<SessionFeedEvent> = {}): SessionFeedEvent => ({
+  actor_display_name: 'Luis',
+  actor_id: 'buyer-1',
+  created_at: '2026-10-26T10:00:00.000Z',
+  id,
+  item_id: 'item-1',
+  payload: { item_title: 'Charizard ex' },
+  session_id: 'session-1',
+  type: 'item_claimed',
+  ...patch,
+});
+
+export const entry = (patch: Partial<ViewerEntry> = {}): ViewerEntry => ({
+  id: 'entry-1',
+  item_id: 'item-1',
+  kind: 'claim',
+  amount_cents: 15_000,
+  status: 'queued',
+  seq: 1,
+  ...patch,
+});

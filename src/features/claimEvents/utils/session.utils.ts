@@ -29,6 +29,12 @@ export function canPublish(
   return { ok: reasons.length === 0, reasons };
 }
 
+/** Mismo minuto: el formulario captura minutos, la BD guarda segundos. Dos nulos son iguales. */
+export function sameMinute(a: string | null, b: string | null): boolean {
+  if (a === null || b === null) return a === b;
+  return Math.floor(new Date(a).getTime() / 60_000) === Math.floor(new Date(b).getTime() / 60_000);
+}
+
 /** Mueve un elemento de `from` a `to` y devuelve la lista nueva (no muta). */
 export function reorderItems<T>(items: readonly T[], from: number, to: number): T[] {
   if (from < 0 || from >= items.length || to < 0 || to >= items.length) return [...items];

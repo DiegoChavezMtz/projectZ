@@ -7,6 +7,8 @@ export const claimEventsContent = {
     integer: 'Escribe un número entero.',
     range: (min: number, max: number) => `Debe estar entre ${min} y ${max}.`,
     date: 'Elige una fecha y hora válidas.',
+    closesAfterStart: 'El cierre debe ser posterior al inicio.',
+    closesInvalid: 'El cierre debe ser posterior al inicio y a este momento.',
     price: 'Escribe un precio válido en pesos, por ejemplo 1,550.50.',
   },
   errors: {
@@ -15,6 +17,8 @@ export const claimEventsContent = {
     forbidden: 'No tienes permiso para hacer esto.',
     invalid_state: 'El evento ya no se puede modificar así.',
     validation_failed: 'El evento está incompleto.',
+    close_invalid:
+      'No pudimos mover el cierre. Elige una fecha posterior al inicio y a este momento.',
     image_type: 'Elige una imagen JPG, PNG o WebP.',
     image_size: 'La imagen pesa demasiado (máximo 5 MB).',
     image_failed: 'No pudimos subir la imagen. Intenta de nuevo.',
@@ -63,6 +67,12 @@ export const claimEventsContent = {
     rulesHint: 'Lo que deben saber los compradores antes de participar.',
     startsAt: 'Fecha y hora de inicio',
     startsAtHint: 'Hora de la Ciudad de México. Es informativa: tú inicias el evento.',
+    closesAt: 'Cierre programado (opcional)',
+    closesAtHint:
+      'Hora de la Ciudad de México. Si lo dejas vacío, tú cierras el claim. Puedes moverlo más adelante.',
+    accumulateDays: 'Vigencia del guardadito (días)',
+    accumulateDaysHint:
+      'Entre 30 y 120. Cuántos días puede guardar el comprador sus claims, desde que su cuenta queda pagada.',
     duration: 'Duración estimada (minutos)',
     releaseMode: 'Liberación de artículos',
     releaseAll: 'Todos al iniciar',
@@ -145,3 +155,16 @@ export const claimEventsContent = {
     scheduledOn: (when: string) => `Programado para ${when}.`,
   },
 } as const;
+
+// Errores de las acciones del vendedor en vivo (RPC del motor). Se mantienen aparte de `claimEventsContent`
+// para no mezclarlos con los de edición.
+export const liveActionErrors: Record<string, string> = {
+  unauthenticated: 'Inicia sesión para continuar.',
+  forbidden: 'No eres el dueño de este claim.',
+  not_found: 'No encontramos ese elemento.',
+  session_not_live: 'El claim no está en vivo.',
+  item_not_available: 'Este artículo ya no está disponible.',
+  invalid_state: 'Esa acción ya no es posible; actualiza la pantalla.',
+  validation_failed: 'El anuncio debe tener entre 1 y 200 caracteres.',
+  unknown: 'Algo salió mal. Intenta de nuevo.',
+};

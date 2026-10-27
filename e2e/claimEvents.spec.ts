@@ -192,3 +192,78 @@ test('vendedor: crea, agrega artículos, reordena, publica y ve los campos bloqu
   await expect(page.getByRole('heading', { name: 'Claim de viernes (editado)' })).toBeVisible();
   await expect(page.getByText('2 cartas')).toBeVisible();
 });
+
+// S5-13: cierre programado y vigencia del guardadito en el editor.
+test('vendedor: programa el cierre y la vigencia del guardadito, y mueve el cierre tras publicar', async ({
+  page,
+}) => {
+  test.slow();
+  await sellerSession(page);
+  const year = new Date().getFullYear() + 1;
+
+  await page.getByRole('link', { name: 'Nuevo claim' }).first().click();
+  await waitHydrated(page);
+  await page.getByLabel('Título').fill('Claim de fin de semana');
+  await page.getByLabel('Fecha y hora de inicio').fill(`${year}-03-15T20:00`);
+
+  // Combinaciones inválidas: cierre antes del inicio y vigencia fuera de rango.
+  await page.getByLabel('Cierre programado (opcional)').fill(`${year}-03-15T10:00`);
+  await expect(page.getByLabel('Vigencia del guardadito (días)')).toHaveCount(0);
+  await page.getByLabel('Permitir juntar cuentas en una sola entrega').check();
+  await page.getByLabel('Vigencia del guardadito (días)').fill('10');
+  await page.getByRole('button', { name: 'Crear y agregar artículos' }).click();
+  await expect(page.getByText('El cierre debe ser posterior al inicio.')).toBeVisible();
+  await expect(page.getByText('Debe estar entre 30 y 120.')).toBeVisible();
+
+  // Valores válidos: cierre 24 h después del inicio (36 h de ventana total) y 90 días de vigencia.
+  await page.getByLabel('Cierre programado (opcional)').fill(`${year}-03-16T20:00`);
+  await page.getByLabel('Vigencia del guardadito (días)').fill('90');
+  await page.getByRole('button', { name: 'Crear y agregar artículos' }).click();
+  await page.waitForURL(/\/dashboard\/claims\/[0-9a-f-]+\/edit/);
+  const sessionId = page.url().split('/').at(-2)!;
+
+  const stored = async () => {
+    const { data } = await adminClient()
+      .from('claim_sessions')
+      .select('starts_at, closes_at, accumulate_days, allow_accumulate, status')
+      .eq('id', sessionId)
+      .single();
+    return data!;
+  };
+  const created = await stored();
+  expect(created.accumulate_days).toBe(90);
+  expect(created.allow_accumulate).toBe(true);
+  expect(new Date(created.closes_at!).getTime() - new Date(created.starts_at).getTime()).toBe(
+    24 * 3_600_000,
+  );
+
+  // Publicar y mover el cierre: la vigencia queda bloqueada, el cierre sigue editable.
+  await waitHydrated(page);
+  await addItem(page, 'Charizard', '1500');
+  await page.getByRole('button', { name: 'Publicar claim' }).click();
+  await expect(page.getByRole('heading', { name: 'Tu claim está publicado' })).toBeVisible();
+  await page.reload();
+  await waitHydrated(page);
+  await expect(page.getByLabel('Vigencia del guardadito (días)')).toBeDisabled();
+  await expect(page.getByLabel('Cierre programado (opcional)')).toBeEnabled();
+
+  await page.getByLabel('Cierre programado (opcional)').fill(`${year}-03-15T19:00`);
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect(page.getByText('El cierre debe ser posterior al inicio.')).toBeVisible();
+
+  await page.getByLabel('Cierre programado (opcional)').fill(`${year}-03-17T08:00`);
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect(page.getByText('Cambios guardados.')).toBeVisible();
+  const moved = await stored();
+  expect(moved.status).toBe('scheduled');
+  expect(new Date(moved.closes_at!).getTime() - new Date(moved.starts_at).getTime()).toBe(
+    36 * 3_600_000,
+  );
+  expect(moved.accumulate_days).toBe(90);
+
+  // Quitar el cierre mientras está programado.
+  await page.getByLabel('Cierre programado (opcional)').fill('');
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
+  // El aviso de guardado del paso anterior sigue en pantalla: se espera el valor en la BD.
+  await expect.poll(async () => (await stored()).closes_at).toBeNull();
+});

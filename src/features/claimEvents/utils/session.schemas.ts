@@ -23,6 +23,8 @@ const hours = (min: number, max: number) =>
     .transform(Number)
     .refine((n) => n >= min && n <= max, v.range(min, max));
 
+export const ACCUMULATE_DAYS = { min: 30, max: 120, default: 60 } as const;
+
 export const DEADLINE_RANGES = {
   close: { min: 1, max: 168 },
   payment: { min: 1, max: 336 },
@@ -42,6 +44,18 @@ const editableShape = {
       if (!iso) ctx.addIssue({ code: 'custom', message: v.date });
       return iso ?? '';
     }),
+  closesAt: z.preprocess(
+    (value) => (value === undefined ? null : blankToNull(value)),
+    z
+      .string()
+      .nullable()
+      .transform((local, ctx) => {
+        if (local === null) return null;
+        const iso = mexicoLocalToIso(local);
+        if (!iso) ctx.addIssue({ code: 'custom', message: v.date });
+        return iso;
+      }),
+  ),
   expectedDurationMinutes: z.preprocess(
     blankToNull,
     z
@@ -62,17 +76,52 @@ const rulesShape = {
   paymentDeadlineHours: hours(DEADLINE_RANGES.payment.min, DEADLINE_RANGES.payment.max),
   shippingDeadlineHours: hours(DEADLINE_RANGES.shipping.min, DEADLINE_RANGES.shipping.max),
   allowAccumulate: flag,
+  /** Solo se exige (y guarda) si `allowAccumulate`; si no, queda el valor por defecto. */
+  accumulateDays: z.string().trim().optional(),
 };
 
+type CloseFields = { startsAt: string; closesAt: string | null };
+
+/** El cierre programado, si existe, debe ser posterior al inicio. */
+function checkCloseAfterStart(values: CloseFields, ctx: z.RefinementCtx) {
+  if (!values.closesAt || !values.startsAt) return;
+  if (new Date(values.closesAt).getTime() <= new Date(values.startsAt).getTime()) {
+    ctx.addIssue({ code: 'custom', path: ['closesAt'], message: v.closesAfterStart });
+  }
+}
+
 /** Formulario completo (evento en borrador). */
-export const sessionFormSchema = z.object({ ...editableShape, ...rulesShape });
+export const sessionFormSchema = z
+  .object({ ...editableShape, ...rulesShape })
+  .superRefine(checkCloseAfterStart)
+  .superRefine((values, ctx) => {
+    if (!values.allowAccumulate) return;
+    const raw = values.accumulateDays ?? '';
+    const days = /^\d+$/.test(raw) ? Number(raw) : Number.NaN;
+    if (!(days >= ACCUMULATE_DAYS.min && days <= ACCUMULATE_DAYS.max)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['accumulateDays'],
+        message: v.range(ACCUMULATE_DAYS.min, ACCUMULATE_DAYS.max),
+      });
+    }
+  })
+  .transform((values) => ({
+    ...values,
+    accumulateDays: values.allowAccumulate
+      ? Number(values.accumulateDays)
+      : ACCUMULATE_DAYS.default,
+  }));
 /** Evento ya publicado: solo los campos editables. */
-export const lockedSessionFormSchema = z.object(editableShape);
+export const lockedSessionFormSchema = z.object(editableShape).superRefine(checkCloseAfterStart);
 
 export type SessionFormValues = z.output<typeof sessionFormSchema>;
 export type LockedSessionFormValues = z.output<typeof lockedSessionFormSchema>;
 
-/** Valores del formulario → columnas de `claim_sessions`. */
+/**
+ * Valores del formulario → columnas de `claim_sessions`. Tras publicar (esquema bloqueado) no incluye
+ * `closes_at`: el trigger solo permite cambiarlo con la RPC `set_session_close`.
+ */
 export function toSessionColumns(values: LockedSessionFormValues | SessionFormValues) {
   const base = {
     title: values.title,
@@ -90,5 +139,7 @@ export function toSessionColumns(values: LockedSessionFormValues | SessionFormVa
     payment_deadline_hours: values.paymentDeadlineHours,
     shipping_deadline_hours: values.shippingDeadlineHours,
     allow_accumulate: values.allowAccumulate,
+    accumulate_days: values.accumulateDays,
+    closes_at: values.closesAt,
   };
 }

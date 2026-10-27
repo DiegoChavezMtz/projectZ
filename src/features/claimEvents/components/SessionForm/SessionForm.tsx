@@ -20,7 +20,11 @@ import {
   updateSessionAction,
 } from '../../services/claimEvents.actions';
 import { initialActionState } from '../../types';
-import { lockedSessionFormSchema, sessionFormSchema } from '../../utils/session.schemas';
+import {
+  ACCUMULATE_DAYS,
+  lockedSessionFormSchema,
+  sessionFormSchema,
+} from '../../utils/session.schemas';
 import { areRulesLocked } from '../../utils/session.utils';
 import styles from './SessionForm.module.css';
 
@@ -31,6 +35,7 @@ type Values = {
   description: string;
   rules: string;
   startsAt: string;
+  closesAt: string;
   expectedDurationMinutes: string;
   releaseMode: string;
   autoConfirm: boolean;
@@ -38,6 +43,7 @@ type Values = {
   paymentDeadlineHours: string;
   shippingDeadlineHours: string;
   allowAccumulate: boolean;
+  accumulateDays: string;
 };
 
 const defaultsFor = (session?: ClaimSession): Values => ({
@@ -45,6 +51,7 @@ const defaultsFor = (session?: ClaimSession): Values => ({
   description: session?.description ?? '',
   rules: session?.rules ?? '',
   startsAt: session ? isoToMexicoLocal(session.starts_at) : '',
+  closesAt: session?.closes_at ? isoToMexicoLocal(session.closes_at) : '',
   expectedDurationMinutes: session?.expected_duration_minutes?.toString() ?? '',
   releaseMode: session?.release_mode ?? 'all_at_start',
   autoConfirm: session?.auto_confirm ?? true,
@@ -52,6 +59,7 @@ const defaultsFor = (session?: ClaimSession): Values => ({
   paymentDeadlineHours: String(session?.payment_deadline_hours ?? 48),
   shippingDeadlineHours: String(session?.shipping_deadline_hours ?? 120),
   allowAccumulate: session?.allow_accumulate ?? false,
+  accumulateDays: String(session?.accumulate_days ?? ACCUMULATE_DAYS.default),
 });
 
 type Props = { session?: ClaimSession };
@@ -64,7 +72,8 @@ export function SessionForm({ session }: Props) {
     session ? updateSessionAction : createSessionAction,
     defaultsFor(session),
   );
-  const { register } = form;
+  const { register, watch } = form;
+  const allowAccumulate = watch('allowAccumulate');
   const [confirmCancel, setConfirmCancel] = useState(false);
 
   const formError =
@@ -112,6 +121,9 @@ export function SessionForm({ session }: Props) {
               )}
             </FormField>
           </div>
+          <FormField label={c.closesAt} hint={c.closesAtHint} error={errorFor('closesAt')}>
+            {(control) => <Input {...control} {...register('closesAt')} type="datetime-local" />}
+          </FormField>
         </fieldset>
 
         <fieldset className={styles.group} disabled={locked}>
@@ -168,6 +180,17 @@ export function SessionForm({ session }: Props) {
             </FormField>
           </div>
           <Checkbox label={c.allowAccumulate} hint={lockHint} {...register('allowAccumulate')} />
+          {allowAccumulate ? (
+            <FormField
+              label={c.accumulateDays}
+              hint={lockHint ?? c.accumulateDaysHint}
+              error={errorFor('accumulateDays')}
+            >
+              {(control) => (
+                <Input {...control} {...register('accumulateDays')} inputMode="numeric" />
+              )}
+            </FormField>
+          ) : null}
         </fieldset>
 
         <div className={styles.actions}>

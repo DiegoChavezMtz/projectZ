@@ -1,0 +1,12 @@
+.root {
+  color: var(--color-text);
+}
+
+.label {
+  color: var(--color-text-muted);
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}

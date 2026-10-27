@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { deleteEngineData } from './engineCleanup';
 import { adminClient, anonClient, type AnyClient } from './supabase';
 
 export const TEST_EMAIL_DOMAIN = '@test.zlotify.invalid';
@@ -65,12 +66,18 @@ export async function signInAs(user: TestUser): Promise<AnyClient> {
 /** Borra solo los usuarios creados por este proceso de pruebas. */
 export async function deleteCreatedTestUsers(): Promise<void> {
   const admin = adminClient();
-  while (created.length > 0) {
-    const user = created.pop();
-    if (user) {
-      await admin.from('claim_sessions').delete().eq('seller_id', user.id).eq('is_test', true);
-      await admin.auth.admin.deleteUser(user.id);
-      await admin.from('profiles').delete().eq('id', user.id).eq('is_test', true);
-    }
+  const users = created.splice(0, created.length);
+  await deleteEngineData(
+    admin,
+    users.map((u) => u.id),
+  );
+  // En lotes: con decenas de usuarios (concurrency.test.ts) borrar en serie excede el hookTimeout.
+  for (let i = 0; i < users.length; i += 10) {
+    await Promise.all(
+      users.slice(i, i + 10).map(async (user) => {
+        await admin.auth.admin.deleteUser(user.id);
+        await admin.from('profiles').delete().eq('id', user.id).eq('is_test', true);
+      }),
+    );
   }
 }

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { parsePublicEnv, parseServerEnv, publicEnvSchema, serverEnvSchema } from '@/lib/env.schema';
 
 const validServer = {
@@ -74,5 +74,39 @@ describe('separación público / privado', () => {
     };
     walk(resolve(__dirname, '../../src'));
     expect(offenders).toEqual([]);
+  });
+});
+
+describe('env.public (validación ligera, sin Zod)', () => {
+  const valid = {
+    NEXT_PUBLIC_SUPABASE_URL: 'https://abc.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon',
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'site',
+  };
+  const load = async (env: Record<string, string | undefined>) => {
+    vi.resetModules();
+    for (const [key, value] of Object.entries({ ...valid, ...env })) {
+      if (value === undefined) vi.stubEnv(key, '');
+      else vi.stubEnv(key, value);
+    }
+    return import('@/lib/env.public');
+  };
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('expone las mismas claves que el esquema completo', async () => {
+    const { publicEnv } = await load({});
+    expect(Object.keys(publicEnv).sort()).toEqual(Object.keys(publicEnvSchema.shape).sort());
+  });
+
+  it('acepta lo mismo que el esquema', async () => {
+    expect(publicEnvSchema.safeParse(valid).success).toBe(true);
+    await expect(load({})).resolves.toBeDefined();
+  });
+
+  it('rechaza lo que el esquema rechaza, con el mismo formato de mensaje', async () => {
+    await expect(load({ NEXT_PUBLIC_SUPABASE_URL: undefined })).rejects.toThrow(/NEXT_PUBLIC_SUPABASE_URL: falta/);
+    await expect(load({ NEXT_PUBLIC_SUPABASE_URL: 'no es url' })).rejects.toThrow(/NEXT_PUBLIC_SUPABASE_URL: inválida/);
+    await expect(load({ NEXT_PUBLIC_SUPABASE_ANON_KEY: undefined })).rejects.toThrow(/NEXT_PUBLIC_SUPABASE_ANON_KEY: falta/);
+    expect(publicEnvSchema.safeParse({ ...valid, NEXT_PUBLIC_SUPABASE_URL: 'no es url' }).success).toBe(false);
   });
 });

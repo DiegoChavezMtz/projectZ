@@ -171,10 +171,12 @@ export type Database = {
       }
       claim_sessions: {
         Row: {
+          accumulate_days: number
           allow_accumulate: boolean
           auto_confirm: boolean
           category: string
           close_deadline_hours: number
+          closes_at: string | null
           code: string
           created_at: string
           description: string | null
@@ -194,10 +196,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accumulate_days?: number
           allow_accumulate?: boolean
           auto_confirm?: boolean
           category?: string
           close_deadline_hours?: number
+          closes_at?: string | null
           code: string
           created_at?: string
           description?: string | null
@@ -217,10 +221,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accumulate_days?: number
           allow_accumulate?: boolean
           auto_confirm?: boolean
           category?: string
           close_deadline_hours?: number
+          closes_at?: string | null
           code?: string
           created_at?: string
           description?: string | null
@@ -716,16 +722,94 @@ export type Database = {
       }
     }
     Functions: {
+      accept_offer: { Args: { p_entry_id: string }; Returns: Json }
+      audit_session: {
+        Args: { p_session_id: string }
+        Returns: {
+          detail: string
+          item_id: string
+          violation: string
+        }[]
+      }
+      audit_user_stats: {
+        Args: { p_user_id: string }
+        Returns: {
+          actual: number
+          metric: string
+          stored: number
+        }[]
+      }
+      award_item: { Args: { p_entry_id: string }; Returns: string }
+      bump_stat: {
+        Args: { p_column: string; p_delta: number; p_user_id: string }
+        Returns: undefined
+      }
       cancel_session: { Args: { p_session_id: string }; Returns: Json }
+      claim_item: { Args: { p_item_id: string }; Returns: Json }
+      close_expired_sessions: { Args: never; Returns: Json }
+      confirm_entry: { Args: { p_entry_id: string }; Returns: Json }
+      end_session: { Args: { p_session_id: string }; Returns: Json }
+      feature_item: {
+        Args: { p_featured?: boolean; p_item_id: string }
+        Returns: Json
+      }
       generate_claim_code: { Args: never; Returns: string }
+      internal_end_session: {
+        Args: { p_actor: string; p_scheduled?: boolean; p_session_id: string }
+        Returns: Json
+      }
       is_handle_available: { Args: { p_handle: string }; Returns: boolean }
+      is_session_owner: {
+        Args: { p_session_id: string; p_uid: string }
+        Returns: boolean
+      }
       is_slug_available: { Args: { p_slug: string }; Returns: boolean }
       is_test_email: { Args: { email: string }; Returns: boolean }
+      lock_seller_entry: {
+        Args: {
+          p_entry_id: string
+          p_kind: Database["public"]["Enums"]["entry_kind"]
+          p_uid: string
+        }
+        Returns: Json
+      }
+      log_session_feed: {
+        Args: {
+          p_actor_id?: string
+          p_item_id: string
+          p_payload?: Json
+          p_session_id: string
+          p_type: Database["public"]["Enums"]["feed_event_type"]
+        }
+        Returns: number
+      }
+      make_offer: {
+        Args: { p_amount_cents: number; p_item_id: string }
+        Returns: Json
+      }
+      post_announcement: {
+        Args: { p_session_id: string; p_text: string }
+        Returns: Json
+      }
       publish_session: { Args: { p_session_id: string }; Returns: Json }
+      recompute_item_state: { Args: { p_item_id: string }; Returns: undefined }
+      reject_entry: { Args: { p_entry_id: string }; Returns: Json }
+      reject_offer: { Args: { p_entry_id: string }; Returns: Json }
+      release_all_items: { Args: { p_session_id: string }; Returns: Json }
+      release_item: { Args: { p_item_id: string }; Returns: Json }
       reorder_items: {
         Args: { p_ordered_ids: string[]; p_session_id: string }
         Returns: Json
       }
+      rpc_error: { Args: { p_code: string; p_message: string }; Returns: Json }
+      server_now: { Args: never; Returns: string }
+      set_session_close: {
+        Args: { p_closes_at: string; p_session_id: string }
+        Returns: Json
+      }
+      start_session: { Args: { p_session_id: string }; Returns: Json }
+      withdraw_entry: { Args: { p_entry_id: string }; Returns: Json }
+      withdraw_item: { Args: { p_item_id: string }; Returns: Json }
     }
     Enums: {
       code_purpose: "verify_email" | "login" | "reset_password" | "change_email"
@@ -748,6 +832,7 @@ export type Database = {
         | "entry_rejected"
         | "announcement"
         | "item_featured"
+        | "session_extended"
       item_status: "hidden" | "available" | "sold" | "withdrawn"
       release_mode: "all_at_start" | "manual"
       session_status: "draft" | "scheduled" | "live" | "ended" | "cancelled"
@@ -899,6 +984,7 @@ export const Constants = {
         "entry_rejected",
         "announcement",
         "item_featured",
+        "session_extended",
       ],
       item_status: ["hidden", "available", "sold", "withdrawn"],
       release_mode: ["all_at_start", "manual"],

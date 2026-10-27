@@ -14,6 +14,7 @@ import {
   isItemComplete,
   isSessionEditable,
   reorderItems,
+  sameMinute,
 } from '@/features/claimEvents/utils/session.utils';
 
 const validSession = {
@@ -21,6 +22,7 @@ const validSession = {
   description: '',
   rules: '  ',
   startsAt: '2026-11-06T20:00',
+  closesAt: '',
   expectedDurationMinutes: '90',
   releaseMode: 'all_at_start',
   autoConfirm: 'on',
@@ -28,6 +30,7 @@ const validSession = {
   paymentDeadlineHours: '48',
   shippingDeadlineHours: '120',
   allowAccumulate: undefined,
+  accumulateDays: '',
 };
 
 describe('sessionFormSchema', () => {
@@ -45,6 +48,8 @@ describe('sessionFormSchema', () => {
       payment_deadline_hours: 48,
       shipping_deadline_hours: 120,
       allow_accumulate: false,
+      accumulate_days: 60,
+      closes_at: null,
     });
   });
 
@@ -189,5 +194,69 @@ describe('utils de evento', () => {
     expect(reorderItems(list, 3, 0)).toEqual(['d', 'a', 'b', 'c']);
     expect(reorderItems(list, 1, 9)).toEqual(list);
     expect(list).toEqual(['a', 'b', 'c', 'd']);
+  });
+});
+
+describe('S5-13: cierre programado y vigencia del guardadito', () => {
+  it('closesAt vacío es null y una fecha se convierte desde la hora de la Ciudad de México', () => {
+    expect(sessionFormSchema.parse(validSession).closesAt).toBeNull();
+    const parsed = sessionFormSchema.parse({ ...validSession, closesAt: '2026-11-08T08:00' });
+    expect(parsed.closesAt).toBe('2026-11-08T14:00:00.000Z');
+    expect(toSessionColumns(parsed)).toMatchObject({ closes_at: '2026-11-08T14:00:00.000Z' });
+  });
+
+  it('rechaza un cierre igual o anterior al inicio, y un texto que no es fecha', () => {
+    for (const closesAt of ['2026-11-06T20:00', '2026-11-06T19:59', '2026-11-01T10:00']) {
+      const result = sessionFormSchema.safeParse({ ...validSession, closesAt });
+      expect(result.success, closesAt).toBe(false);
+      expect(result.error?.issues[0]?.path).toEqual(['closesAt']);
+    }
+    expect(sessionFormSchema.safeParse({ ...validSession, closesAt: 'mañana' }).success).toBe(
+      false,
+    );
+  });
+
+  it('la regla de cierre también aplica al esquema de un evento publicado, sin tocar closes_at en columnas', () => {
+    const input = {
+      title: 'Claim',
+      description: '',
+      rules: '',
+      startsAt: '2026-11-06T20:00',
+      expectedDurationMinutes: '',
+    };
+    expect(
+      lockedSessionFormSchema.safeParse({ ...input, closesAt: '2026-11-06T19:00' }).success,
+    ).toBe(false);
+    const ok = lockedSessionFormSchema.parse({ ...input, closesAt: '2026-11-08T08:00' });
+    expect(ok.closesAt).toBe('2026-11-08T14:00:00.000Z');
+    expect(toSessionColumns(ok)).not.toHaveProperty('closes_at');
+    expect(toSessionColumns(ok)).not.toHaveProperty('accumulate_days');
+  });
+
+  it('accumulateDays se exige entre 30 y 120 solo si allowAccumulate', () => {
+    const withAccumulate = (accumulateDays: string) =>
+      sessionFormSchema.safeParse({ ...validSession, allowAccumulate: 'on', accumulateDays });
+    for (const bad of ['', '29', '121', 'abc', '45.5', '-40']) {
+      const result = withAccumulate(bad);
+      expect(result.success, bad).toBe(false);
+      expect(result.error?.issues[0]?.path).toEqual(['accumulateDays']);
+    }
+    for (const good of ['30', '60', '120']) {
+      const parsed = withAccumulate(good);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data && toSessionColumns(parsed.data)).toMatchObject({
+        accumulate_days: Number(good),
+      });
+    }
+    // Sin guardadito se ignora el valor y queda el predeterminado.
+    const off = sessionFormSchema.parse({ ...validSession, accumulateDays: '5' });
+    expect(off.accumulateDays).toBe(60);
+  });
+
+  it('sameMinute compara a resolución de minuto y trata null como valor', () => {
+    expect(sameMinute(null, null)).toBe(true);
+    expect(sameMinute(null, '2026-11-08T14:00:00.000Z')).toBe(false);
+    expect(sameMinute('2026-11-08T14:00:00.000Z', '2026-11-08T14:00:41.250+00:00')).toBe(true);
+    expect(sameMinute('2026-11-08T14:00:00.000Z', '2026-11-08T14:01:00.000Z')).toBe(false);
   });
 });
