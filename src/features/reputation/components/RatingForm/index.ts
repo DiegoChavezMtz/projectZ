@@ -1,0 +1,1 @@
+export { RatingForm } from './RatingForm';

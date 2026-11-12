@@ -81,13 +81,13 @@ describe('claim_sessions: creación y restricciones', () => {
 });
 
 describe('claim_items: restricciones', () => {
-  it('posición única por evento, precio positivo y attributes objeto', async () => {
+  it('posición única por evento, precio no negativo (0 solo en borrador, migración 27) y attributes objeto', async () => {
     const { seller, session } = await draftWithItems(1);
     const dup = await seller.client.from('claim_items').insert(itemRow(session.id, 1));
     expect(dup.error?.code).toBe('23505');
     const price = await seller.client
       .from('claim_items')
-      .insert(itemRow(session.id, 2, { price_cents: 0 }));
+      .insert(itemRow(session.id, 2, { price_cents: -1 }));
     expect(price.error?.code).toBe('23514');
     const attrs = await seller.client
       .from('claim_items')

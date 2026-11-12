@@ -1,4 +1,4 @@
-/** Sugiere un slug (`[a-z0-9-]`, 3 a 40) a partir del nombre de la tienda. */
+/** Sugiere un slug (`[a-z0-9-]`, 3 a 40) a partir del nombre del espacio. */
 export function slugify(value: string): string {
   return value
     .normalize('NFD')

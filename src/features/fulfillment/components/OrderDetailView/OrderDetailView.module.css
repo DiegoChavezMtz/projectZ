@@ -13,7 +13,7 @@
 }
 
 .back:hover {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .header {

@@ -3,7 +3,7 @@ import { authContent } from '../../content/es-MX';
 import { authService } from '../../services/auth.service';
 import { profileService } from '../../services/profile.service';
 import { recoveryService } from '../../services/recovery.service';
-import { sanitizeNextPath } from '../../utils/nextPath';
+import { DEFAULT_APP_PATH, sanitizeNextPath } from '../../utils/nextPath';
 import { AuthCard } from '../AuthCard';
 import { ForgotPasswordFlow } from '../ForgotPasswordFlow';
 import { GoogleButton } from '../GoogleButton';
@@ -16,10 +16,10 @@ import { TermsOnboarding } from '../TermsOnboarding';
 import { VerifyEmailForm } from '../VerifyEmailForm';
 import styles from '../AuthForm.module.css';
 
-// Entradas de las pages: `next` solo viaja si es una ruta interna segura distinta de `/`.
+// Entradas de las pages: `next` solo viaja si es una ruta interna segura distinta del destino por defecto.
 const safeNext = (value: string | undefined) => {
   const path = sanitizeNextPath(value);
-  return path === '/' ? undefined : path;
+  return path === DEFAULT_APP_PATH ? undefined : path;
 };
 
 const Divider = () => (
@@ -103,7 +103,7 @@ export function VerifyEmailPage({ email, next }: { email?: string; next?: string
 export async function TermsPage({ next }: { next?: string }) {
   const c = authContent.terms;
   const safe = safeNext(next);
-  await authService.requireUser(safe ?? '/', { allowPendingTerms: true });
+  await authService.requireUser(safe ?? DEFAULT_APP_PATH, { allowPendingTerms: true });
   return (
     <AuthCard title={c.title} subtitle={c.subtitle}>
       <TermsOnboarding next={safe} />

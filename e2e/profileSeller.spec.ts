@@ -114,14 +114,14 @@ test.describe('vendedor (A11)', () => {
 
     await page.getByRole('link', { name: 'Quiero vender' }).first().click();
     await waitForCaptcha(page).catch(() => undefined);
-    await page.getByLabel('Nombre de la tienda').fill('Cartas de Ñandú');
-    await expect(page.getByLabel('Enlace de tu tienda')).toHaveValue('cartas-de-nandu');
+    await page.getByLabel('Nombre de tu espacio').fill('Cartas de Ñandú');
+    await expect(page.getByLabel('Enlace de tu espacio')).toHaveValue('cartas-de-nandu');
     const slug = `tienda-${randomUUID().slice(0, 8)}`;
-    await page.getByLabel('Enlace de tu tienda').fill(slug);
+    await page.getByLabel('Enlace de tu espacio').fill(slug);
     await expect(page.getByText('Disponible')).toBeVisible();
     await page.getByLabel('Ciudad').fill('Puebla');
     await page.getByLabel('Instrucciones de pago').fill('Titular Ana. CLABE 012345678901234567');
-    await page.getByRole('button', { name: 'Crear mi tienda' }).click();
+    await page.getByRole('button', { name: 'Configurar mi espacio' }).click();
     await page.waitForURL('/dashboard');
     await expect(page.getByRole('heading', { name: /Tu tienda: Cartas de Ñandú/ })).toBeVisible();
 
@@ -151,13 +151,13 @@ test.describe('vendedor (A11)', () => {
     const user = await createTestUser();
     await loginUi(page, user, '/onboarding/seller');
     await waitForCaptcha(page).catch(() => undefined);
-    await page.getByLabel('Nombre de la tienda').fill('Mi tienda');
-    await page.getByLabel('Enlace de tu tienda').fill(takenSlug);
+    await page.getByLabel('Nombre de tu espacio').fill('Mi tienda');
+    await page.getByLabel('Enlace de tu espacio').fill(takenSlug);
     await expect(page.getByText('Ese enlace no está disponible.')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Crear mi tienda' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Configurar mi espacio' })).toBeDisabled();
 
-    await page.getByLabel('Enlace de tu tienda').fill('dashboard');
-    await page.getByRole('button', { name: 'Crear mi tienda' }).click();
+    await page.getByLabel('Enlace de tu espacio').fill('dashboard');
+    await page.getByRole('button', { name: 'Configurar mi espacio' }).click();
     await expect(page.getByText('Ese enlace no está disponible.')).toBeVisible();
   });
 });

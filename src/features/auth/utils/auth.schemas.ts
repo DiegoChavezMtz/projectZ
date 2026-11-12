@@ -109,5 +109,9 @@ export const sellerSchema = z.object({
   paymentInstructions: optionalText(500, v.paymentMax),
 });
 
+/** Perfil de la tienda editable (el enlace no cambia después del alta). */
+export const shopProfileSchema = sellerSchema.pick({ shopName: true, bio: true, city: true });
+
 export type ProfileInput = z.infer<typeof profileSchema>;
 export type SellerInput = z.input<typeof sellerSchema>;
+export type ShopProfileInput = z.input<typeof shopProfileSchema>;

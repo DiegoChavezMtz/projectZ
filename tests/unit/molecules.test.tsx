@@ -6,6 +6,7 @@ import { Input } from '@/components/atoms/Input';
 import { Dialog } from '@/components/molecules/Dialog';
 import { FormField } from '@/components/molecules/FormField';
 import { Panel } from '@/components/molecules/Panel';
+import { ReputationBadge } from '@/components/molecules/ReputationBadge';
 import { Skeleton } from '@/components/molecules/Skeleton';
 import { ToastProvider, useToast } from '@/context/ToastContext';
 
@@ -134,5 +135,49 @@ describe('Toast', () => {
       vi.advanceTimersByTime(6000);
     });
     expect(screen.queryByText('Guardado')).not.toBeInTheDocument();
+  });
+});
+
+describe('ReputationBadge', () => {
+  const base = {
+    handle: 'cartas',
+    name: 'Cartas del Centro',
+    winsCount: 12,
+    memberSince: '2026-10-15T12:00:00Z',
+    isSeller: true,
+  };
+
+  it('enlaza al perfil y muestra cifras del vendedor', () => {
+    render(<ReputationBadge {...base} rating={{ average: 4.66, count: 3 }} />);
+    const link = screen.getByRole('link', { name: 'Ver perfil de Cartas del Centro' });
+    expect(link).toHaveAttribute('href', '/u/cartas');
+    expect(link).toHaveTextContent('12 claims entregados');
+    expect(link).toHaveTextContent('4.7');
+    expect(link).toHaveTextContent('Desde octubre de 2026');
+  });
+
+  it('comprador muestra claims ganados y tasa de pago', () => {
+    render(<ReputationBadge {...base} isSeller={false} winsCount={1} paidOnTimeRate={0.667} />);
+    const link = screen.getByRole('link');
+    expect(link).toHaveTextContent('1 claim ganado');
+    expect(link).toHaveTextContent('67 % paga a tiempo');
+  });
+
+  it('sin tasa ni calificación no inventa cifras', () => {
+    render(<ReputationBadge {...base} isSeller={false} paidOnTimeRate={null} rating={null} />);
+    const link = screen.getByRole('link');
+    expect(link).not.toHaveTextContent('paga a tiempo');
+    expect(link).not.toHaveTextContent('★');
+  });
+
+  it('variante "Nuevo" sin historial', () => {
+    render(<ReputationBadge {...base} winsCount={0} isNew />);
+    expect(screen.getByRole('link')).toHaveTextContent('Nuevo');
+    expect(screen.getByRole('link')).not.toHaveTextContent('claims');
+  });
+
+  it('variante compacta omite la antigüedad', () => {
+    render(<ReputationBadge {...base} compact />);
+    expect(screen.getByRole('link')).not.toHaveTextContent('Desde');
   });
 });

@@ -1,3 +1,4 @@
+import { trackRpcError } from '@/lib/observability/rpc';
 import { AppError } from './errors';
 
 // Respuesta uniforme de las RPC del motor: {ok:true, ...} o {ok:false, code, message}.
@@ -24,11 +25,13 @@ export function unwrapRpc<T extends object = object>(
     throw new AppError('unauthenticated', messages.unauthenticated ?? fallback, error);
   }
   if (error || !isRecord(data) || typeof data.ok !== 'boolean') {
+    trackRpcError('transport_error');
     throw new AppError('unknown', fallback, error ?? data);
   }
   if (data.ok) return data as RpcSuccess<T>;
 
   const code = typeof data.code === 'string' ? data.code : 'unknown';
+  trackRpcError(code);
   const reasons = Array.isArray(data.reasons) ? (data.reasons as string[]) : undefined;
   throw new AppError(code, messages[code] ?? fallback, { reasons });
 }

@@ -6,6 +6,7 @@ import { fulfillmentContent } from '../../content/es-MX';
 import type { OrderView } from '../../types';
 import { Countdown } from '../Countdown';
 import { OrderStatusBadge } from '../StatusBadge';
+import { CounterpartBadge } from '../CounterpartBadge';
 import styles from './OrderCard.module.css';
 
 const c = fulfillmentContent;
@@ -26,6 +27,7 @@ export function OrderCard({ view }: { view: OrderView }) {
       <Text size="sm" tone="muted">
         {view.counterpart} · {c.common.items(view.items.length)} · {formatMXN(total)}
       </Text>
+      <CounterpartBadge badge={view.counterpartBadge} name={view.counterpart} />
       {awaiting ? <Countdown dueAt={order.pay_due_at!} /> : null}
       <Link href={`/orders/${order.id}`} className={styles.link}>
         {c.buyer.openOrder}

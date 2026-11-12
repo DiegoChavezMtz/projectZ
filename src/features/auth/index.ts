@@ -10,10 +10,12 @@ export {
 } from './components/AuthPages';
 export { AccountView } from './components/AccountView';
 export { SecurityView } from './components/SecurityView';
-export { SellerGate, SellerDashboardView } from './components/SellerGate';
+export { SellerGate, SellerDashboardView, ShopSettingsView } from './components/SellerGate';
 export { SessionMenu } from './components/SessionMenu';
+export { AppEntry } from './components/AppEntry';
+export { AppUserMenu } from './components/AppUserMenu';
 export { handleOAuthCallback } from './services/oauth.handler';
-export { sanitizeNextPath } from './utils/nextPath';
+export { sanitizeNextPath, DEFAULT_APP_PATH } from './utils/nextPath';
 export { isReservedHandle } from './utils/handle';
 export { decideRoute } from './utils/routeGuard';
 export { initialActionState } from './types';

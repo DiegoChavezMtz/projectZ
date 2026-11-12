@@ -22,6 +22,7 @@ const order = (patch: Partial<OrderRow>): OrderView => ({
   allowAccumulate: false,
   accumulateDays: 60,
   counterpart: '',
+  counterpartBadge: null,
   items: [],
   proofs: [],
   dispute: null,
@@ -30,6 +31,7 @@ const order = (patch: Partial<OrderRow>): OrderView => ({
 const delivery = (patch: Partial<DeliveryRow>): DeliveryView => ({
   delivery: { id: 'd', status: 'requested', method: 'shipping', ...patch } as DeliveryRow,
   counterpart: '',
+  counterpartBadge: null,
   orders: [],
   proofs: [],
 });

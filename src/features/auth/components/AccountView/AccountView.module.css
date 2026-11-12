@@ -30,3 +30,8 @@
   flex-wrap: wrap;
   gap: var(--space-3);
 }
+
+.sub {
+  display: block;
+  margin-top: var(--space-3);
+}

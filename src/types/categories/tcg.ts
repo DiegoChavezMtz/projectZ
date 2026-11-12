@@ -30,6 +30,7 @@ export const tcgCategory: CategoryDefinition<TcgAttributes> = {
   schema: tcgAttributesSchema,
   itemLabels: { singular: 'carta', plural: 'cartas' },
   imageAspect: { width: 63, height: 88 },
+  draftAttributes: { language: 'es', condition: 'NM' },
   fields: [
     { kind: 'text', name: 'set_name', label: 'Set o colección', required: false, maxLength: 80 },
     {

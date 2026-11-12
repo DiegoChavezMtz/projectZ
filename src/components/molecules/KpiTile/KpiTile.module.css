@@ -1,0 +1,42 @@
+.root {
+  display: flex;
+  min-height: var(--tap-target-min);
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--zl-radius-md);
+  color: var(--zl-color-ink);
+  text-decoration: none;
+}
+
+.value {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  line-height: 1.3;
+}
+
+.orange {
+  background: var(--zl-color-orange);
+}
+
+.jade {
+  background: var(--zl-color-jade);
+}
+
+.pink {
+  background: var(--zl-color-pink);
+}
+
+.grey {
+  background: var(--zl-state-sold);
+}
+
+.root:hover {
+  box-shadow: inset 0 0 0 var(--zl-border-w) var(--zl-color-ink);
+}

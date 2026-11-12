@@ -1,0 +1,107 @@
+.root {
+  position: absolute;
+  z-index: 6;
+  right: var(--zl-gutter);
+  bottom: calc(-1 * var(--ov, 70px));
+  width: calc(var(--pw, 112px) * 1.5);
+  height: calc(var(--pw, 112px) * 1.4 + 16px);
+  filter: drop-shadow(0 16px 16px rgb(20 17 13 / 0.28));
+  pointer-events: none;
+}
+
+.left {
+  right: auto;
+  left: var(--zl-gutter);
+}
+
+.piece {
+  position: absolute;
+  bottom: 0;
+  box-shadow: none;
+}
+
+.front {
+  z-index: 3;
+  /* El estado sube para no quedar bajo la cápsula de nombre y precio */
+  --state-bottom: calc(var(--zl-photo-frame) + 6px + 2.2rem);
+
+  right: 0;
+  width: var(--pw, 112px);
+  rotate: 5deg;
+}
+
+.noCaption {
+  --state-bottom: calc(var(--zl-photo-frame) + var(--space-2));
+}
+
+.back1 {
+  z-index: 2;
+  right: calc(var(--pw, 112px) * 0.44);
+  bottom: calc(var(--pw, 112px) * 0.06 + 14px);
+  width: calc(var(--pw, 112px) * 0.9);
+  rotate: -8deg;
+}
+
+.back2 {
+  z-index: 1;
+  right: calc(var(--pw, 112px) * 0.66);
+  bottom: calc(var(--pw, 112px) * 0.12 + 26px);
+  width: calc(var(--pw, 112px) * 0.74);
+  rotate: -17deg;
+}
+
+/* Nombre y precio: cápsula de tinta sobre la pieza de enfrente (marfil 17.5:1, naranja 8.0:1). */
+.caption {
+  position: absolute;
+  z-index: 4;
+  right: calc(var(--zl-photo-frame) + 6px);
+  bottom: calc(var(--zl-photo-frame) + 6px);
+  left: calc(var(--zl-photo-frame) + 6px);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--zl-color-ink);
+  color: var(--zl-color-ivory);
+  font-size: clamp(0.72rem, calc(var(--pw, 112px) * 0.07), 1.2rem);
+  font-weight: var(--font-weight-heavy);
+  line-height: 1.1;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.price {
+  color: var(--zl-color-orange);
+}
+
+/* Se asienta una vez (la pila entra desde abajo). Reducir movimiento: todo queda quieto. */
+@keyframes settle {
+  from {
+    opacity: 0;
+    translate: 0 36px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+:root[data-motion='on'] .settle .piece {
+  animation: settle 700ms var(--zl-ease) both;
+}
+
+:root[data-motion='on'] .settle .back1 {
+  animation-delay: 120ms;
+}
+
+:root[data-motion='on'] .settle .front {
+  animation-delay: 240ms;
+}

@@ -1,0 +1,52 @@
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  min-height: var(--tap-target-min);
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  border: var(--zl-border-w) solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.chip:hover {
+  background: var(--color-surface);
+}
+
+.active,
+.active:hover {
+  border-color: var(--ap-chip-on-bg);
+  background: var(--ap-chip-on-bg);
+  color: var(--ap-chip-on-fg);
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+/* Móvil: lista desplegable en lugar de una fila con scroll */
+.select {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .chips {
+    display: none;
+  }
+
+  .select {
+    display: block;
+  }
+}

@@ -47,6 +47,7 @@ describe('registro de categorías', () => {
       schema: z.object({ size: z.enum(['S', 'M']) }),
       itemLabels: { singular: 'pieza', plural: 'piezas' },
       imageAspect: { width: 1, height: 1 },
+      draftAttributes: { size: 'M' },
       fields: [
         {
           kind: 'select',

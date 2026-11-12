@@ -1,0 +1,104 @@
+.root {
+  position: relative;
+}
+
+.button {
+  display: grid;
+  width: var(--tap-target-min);
+  height: var(--tap-target-min);
+  padding: 0;
+  border: var(--zl-border-w) solid var(--zl-color-ink);
+  border-radius: 50%;
+  background: var(--zl-color-ivory);
+  color: var(--zl-color-ink);
+  cursor: pointer;
+  place-items: center;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--zl-color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.panel {
+  position: absolute;
+  z-index: var(--z-overlay);
+  top: calc(100% + var(--space-2));
+  right: 0;
+  width: 15.5rem;
+  padding: var(--space-2);
+  border-radius: var(--zl-radius-md);
+  background: var(--zl-color-ivory);
+  box-shadow:
+    0 18px 40px -16px rgb(20 17 13 / 0.45),
+    0 0 0 1px rgb(20 17 13 / 0.1);
+  color: var(--zl-color-ink);
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  padding: 10px var(--space-3) var(--space-2);
+}
+
+.who b {
+  font-weight: var(--font-weight-heavy);
+  overflow-wrap: anywhere;
+}
+
+.who span {
+  color: var(--ap-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.item,
+.panel button:not(.motion) {
+  display: flex;
+  width: 100%;
+  min-height: var(--tap-target-min);
+  align-items: center;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+  text-decoration: none;
+}
+
+.item:hover,
+.panel button:not(.motion):hover {
+  background: var(--ap-s1);
+}
+
+.rule {
+  margin: 6px var(--space-2);
+  border: 0;
+  border-top: var(--zl-border-w) dashed var(--ap-edge);
+}
+
+/* En ≥ 768 px el interruptor vive en la barra; aquí solo aparece en móvil */
+.motion {
+  width: calc(100% - 12px);
+  margin: 4px 6px;
+  justify-content: space-between;
+}
+
+@media (min-width: 768px) {
+  .motion {
+    display: none;
+  }
+}

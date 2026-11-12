@@ -96,7 +96,6 @@ export const liveClaimContent = {
   },
   cover: {
     seller: 'Vendedor',
-    sellerProfileSoon: 'Su perfil público estará disponible pronto.',
     starts: 'Empieza',
     closes: 'Cierra',
     rules: 'Reglas del claim',

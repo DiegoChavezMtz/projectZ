@@ -19,6 +19,7 @@ export const item = (patch: Partial<ClaimItem> = {}): ClaimItem => ({
   position: 1,
   price_cents: 15_000,
   released_at: null,
+  seller_note: null,
   session_id: 'session-1',
   status: 'available',
   title: 'Charizard ex',

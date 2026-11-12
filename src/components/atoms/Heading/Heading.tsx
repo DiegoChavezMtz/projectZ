@@ -23,6 +23,14 @@ const defaultSize: Record<Level, Size> = {
 export function Heading({ level, size, className, ...rest }: Props) {
   const Tag = `h${level}` as const;
   return (
-    <Tag className={clsx(styles.root, styles[size ?? defaultSize[level]], className)} {...rest} />
+    <Tag
+      className={clsx(
+        styles.root,
+        styles[size ?? defaultSize[level]],
+        level === 1 && styles.h1,
+        className,
+      )}
+      {...rest}
+    />
   );
 }

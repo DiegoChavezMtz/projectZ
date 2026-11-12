@@ -85,3 +85,11 @@ export function mexicoLocalToIso(local: string): string | null {
   // Rechaza fechas inexistentes (31 de febrero) que Date.UTC normaliza.
   return zonedParts(result) === local ? result.toISOString() : null;
 }
+
+const monthYearFormat = new Intl.DateTimeFormat('es-MX', {
+  timeZone: APP_TIME_ZONE,
+  month: 'long',
+  year: 'numeric',
+});
+/** "octubre de 2026" */
+export const formatMonthYear = (value: DateInput) => monthYearFormat.format(toDate(value));

@@ -16,6 +16,7 @@ import { OrderCard } from '../OrderCard';
 import { RequestDeliveryForm } from '../RequestDeliveryForm';
 import { DeliveryStatusBadge } from '../StatusBadge';
 import { ToastProvider } from '@/context/ToastContext';
+import { CounterpartBadge } from '../CounterpartBadge';
 import styles from './OrdersListView.module.css';
 
 const c = fulfillmentContent;
@@ -34,6 +35,7 @@ function DeliveryCard({ view }: { view: DeliveryView }) {
       <Text size="sm" tone="muted">
         {c.method[delivery.method]} · {view.orders.map((o) => o.sessionTitle).join(', ')}
       </Text>
+      <CounterpartBadge badge={view.counterpartBadge} name={view.counterpart} />
       {delivery.status === 'awaiting_payment' && delivery.pay_due_at ? (
         <>
           <Text size="sm">
@@ -55,11 +57,18 @@ function DeliveryCard({ view }: { view: DeliveryView }) {
   );
 }
 
-/** `/orders`: cuentas del comprador por estado (SSR). */
-export async function OrdersListView() {
+export type BuyerView = 'pending' | 'history';
+
+/**
+ * Cuentas del comprador (SSR), en dos pantallas: `/orders` «Por pagar y enviar» (lo ganado sin pagar:
+ * comprobante, seguimiento de envío y guardadito) y `/orders/history` «Historial» (cerrados y entregados).
+ */
+export async function OrdersListView({ view = 'pending' }: { view?: BuyerView }) {
   // Las comparaciones con la hora actual se resuelven en cada petición, no al prerenderizar.
   await connection();
-  const { supabase, userId } = await requireUser('/orders');
+  const { supabase, userId } = await requireUser(
+    view === 'history' ? '/orders/history' : '/orders',
+  );
   const { orders, deliveries } = await orderQueries.forBuyer(supabase, userId);
   const b = c.buyer;
 
@@ -74,7 +83,10 @@ export async function OrdersListView() {
     (d) => !['delivered', 'cancelled'].includes(d.delivery.status),
   );
   const doneDeliveries = deliveries.filter((d) => d.delivery.status === 'delivered');
-  const empty = orders.length === 0 && deliveries.length === 0;
+  const showPending = view === 'pending';
+  const hasPending = toPay.length + accumulateGroups.length + activeDeliveries.length > 0;
+  const hasHistory = history.length + doneDeliveries.length > 0;
+  const empty = showPending ? !hasPending : !hasHistory;
 
   const list = (items: OrderView[]) => (
     <ul className={styles.list}>
@@ -91,21 +103,23 @@ export async function OrdersListView() {
       <Container className={styles.root}>
         <header>
           <Heading level={1} size="xl">
-            {b.title}
+            {showPending ? b.title : b.historyTitle}
           </Heading>
-          <Text tone="muted">{b.subtitle}</Text>
+          <Text tone="muted" className={styles.subtitle}>
+            {showPending ? b.subtitle : b.historySubtitle}
+          </Text>
         </header>
 
         {empty ? (
           <Panel className={styles.empty}>
             <Heading level={2} size="lg">
-              {b.emptyTitle}
+              {showPending ? b.emptyPending : b.emptyHistory}
             </Heading>
-            <Text tone="muted">{b.emptyText}</Text>
+            {showPending ? <Text tone="muted">{b.emptyText}</Text> : null}
           </Panel>
         ) : null}
 
-        {toPay.length > 0 ? (
+        {showPending && toPay.length > 0 ? (
           <section className={styles.section} aria-labelledby="orders-to-pay">
             <Heading level={2} size="lg" id="orders-to-pay">
               {b.sections.toPay}
@@ -114,7 +128,7 @@ export async function OrdersListView() {
           </section>
         ) : null}
 
-        {accumulateGroups.length > 0 ? (
+        {showPending && accumulateGroups.length > 0 ? (
           <section className={styles.section} aria-labelledby="orders-accumulate">
             <Heading level={2} size="lg" id="orders-accumulate">
               {b.sections.accumulate}
@@ -142,7 +156,7 @@ export async function OrdersListView() {
           </section>
         ) : null}
 
-        {activeDeliveries.length > 0 ? (
+        {showPending && activeDeliveries.length > 0 ? (
           <section className={styles.section} aria-labelledby="orders-deliveries">
             <Heading level={2} size="lg" id="orders-deliveries">
               {b.sections.deliveries}
@@ -157,7 +171,7 @@ export async function OrdersListView() {
           </section>
         ) : null}
 
-        {history.length + doneDeliveries.length > 0 ? (
+        {!showPending && hasHistory ? (
           <section className={styles.section} aria-labelledby="orders-history">
             <Heading level={2} size="lg" id="orders-history">
               {b.sections.history}

@@ -1,0 +1,139 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.viewport {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 50dvh;
+  max-height: 70dvh;
+  overflow: hidden;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Marco de encuadre: borde propio y sombra que oscurece el resto para que se lea sobre cualquier imagen. */
+.guide {
+  position: relative;
+  max-width: 78%;
+  max-height: 88%;
+  padding: 0;
+  background: transparent;
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.45);
+  cursor: pointer;
+}
+
+.guide[data-fit='fits'] {
+  border-style: solid;
+  border-color: var(--color-text);
+  box-shadow:
+    0 0 0 3px var(--color-accent),
+    0 0 0 100vmax rgb(0 0 0 / 0.45);
+}
+
+.guide[data-fit='closer'],
+.guide[data-fit='back'],
+.guide[data-fit='straighten'] {
+  border-style: dashed;
+}
+
+.guide:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 4px;
+}
+
+.guide:disabled {
+  cursor: default;
+}
+
+.flash {
+  background: rgb(255 255 255 / 0.35);
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.overlayText,
+.fallback {
+  position: relative;
+  max-width: 32rem;
+  padding: var(--space-4);
+  text-align: center;
+  background: var(--color-surface-overlay);
+  border-radius: var(--radius-md);
+}
+
+.fallback {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.hint {
+  max-width: 32rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: center;
+}
+
+.shutter {
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  background: var(--color-accent);
+  border: 4px solid var(--color-surface);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 2px var(--color-accent);
+  cursor: pointer;
+}
+
+.shutter:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.shutter:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 4px;
+}
+
+.shutter:disabled {
+  background: var(--color-text-disabled);
+  box-shadow: 0 0 0 2px var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash {
+    transition: none;
+  }
+}

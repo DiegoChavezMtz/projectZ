@@ -17,6 +17,7 @@ export async function deleteEngineData(admin: AnyClient, userIds: string[]): Pro
   const deliveryIds = (deliveries ?? []).map((row) => row.id);
 
   if (orderIds.length > 0) {
+    await admin.from('ratings').delete().in('order_id', orderIds);
     await admin.from('payment_proofs').delete().in('order_id', orderIds);
     await admin.from('order_disputes').delete().in('order_id', orderIds);
   }

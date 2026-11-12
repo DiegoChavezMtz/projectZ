@@ -1,5 +1,6 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { reputationBadgeService } from '@/services/reputation.service';
 import type { Database } from '@/types/database.types';
 import { AppError } from '@/utils/errors';
 import type {
@@ -182,9 +183,12 @@ async function hydrate(
 ): Promise<{ orders: OrderView[]; deliveries: DeliveryView[] }> {
   const counterpartOf = (row: { seller_id: string; buyer_id: string }) =>
     role === 'buyer' ? row.seller_id : row.buyer_id;
-  const [sessions, names, items, disputes, proofs] = await Promise.all([
+  const [sessions, names, badges, items, disputes, proofs] = await Promise.all([
     loadSessions(supabase, [...new Set(orders.map((o) => o.session_id))]),
     loadNames(supabase, role, [...orders, ...deliveries].map(counterpartOf)),
+    reputationBadgeService.forUsers(supabase, [...orders, ...deliveries].map(counterpartOf), {
+      asRole: role === 'buyer' ? 'seller' : 'buyer',
+    }),
     loadItems(
       supabase,
       orders.map((o) => o.id),
@@ -210,6 +214,7 @@ async function hydrate(
       allowAccumulate: session?.allow ?? false,
       accumulateDays: session?.days ?? 60,
       counterpart: names.get(counterpartOf(order)) ?? '',
+      counterpartBadge: badges.get(counterpartOf(order)) ?? null,
       items: items.get(order.id) ?? [],
       proofs: proofs.get(order.id) ?? [],
       dispute: disputes.get(order.id) ?? null,
@@ -219,6 +224,7 @@ async function hydrate(
   const deliveryViews = deliveries.map<DeliveryView>((delivery) => ({
     delivery,
     counterpart: names.get(counterpartOf(delivery)) ?? '',
+    counterpartBadge: badges.get(counterpartOf(delivery)) ?? null,
     orders: orderViews.filter((o) => o.order.delivery_id === delivery.id),
     proofs: proofs.get(delivery.id) ?? [],
   }));

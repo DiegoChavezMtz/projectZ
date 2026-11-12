@@ -1,3 +1,4 @@
+import { DEFAULT_APP_PATH } from './nextPath';
 import type { ActionState } from '../types';
 
 // Helpers puros de las Server Actions.
@@ -22,4 +23,4 @@ export const failure = (code: string, extra: Partial<ActionState> = {}): ActionS
 });
 
 export const verifyUrl = (email: string, next: string) =>
-  `/verify-email?email=${encodeURIComponent(email)}${next === '/' ? '' : `&next=${encodeURIComponent(next)}`}`;
+  `/verify-email?email=${encodeURIComponent(email)}${next === DEFAULT_APP_PATH ? '' : `&next=${encodeURIComponent(next)}`}`;

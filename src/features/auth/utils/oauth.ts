@@ -1,10 +1,10 @@
-import { sanitizeNextPath } from './nextPath';
+import { DEFAULT_APP_PATH, sanitizeNextPath } from './nextPath';
 
 /** URL a la que Supabase devuelve al usuario tras Google. `next` solo viaja si es una ruta interna segura. */
 export function buildOAuthRedirectTo(appUrl: string, next?: string | null): string {
   const url = new URL('/auth/callback', appUrl);
   const safe = sanitizeNextPath(next);
-  if (safe !== '/') url.searchParams.set('next', safe);
+  if (safe !== DEFAULT_APP_PATH) url.searchParams.set('next', safe);
   return url.toString();
 }
 

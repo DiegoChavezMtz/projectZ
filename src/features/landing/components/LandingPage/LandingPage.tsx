@@ -1,4 +1,3 @@
-import { Container } from '@/components/atoms/Container';
 import { Categories } from '../Categories';
 import { Faq } from '../Faq';
 import { FinalCta } from '../FinalCta';
@@ -12,22 +11,21 @@ import { Pricing } from '../Pricing';
 import { Promises } from '../Promises';
 import styles from './LandingPage.module.css';
 
+/** Secuencia de bloques: naranja · oscuro · jade · naranja · rosa · oscuro · jade · naranja · oscuro · rosa. */
 export function LandingPage() {
   return (
-    <>
+    <div className={styles.root}>
       <JsonLd />
       <Hero />
       <Promises />
       <Categories />
       <HowItWorks />
       <LiveClaimPreview />
-      <Container className={styles.audiences}>
-        <ForSellers />
-        <ForBuyers />
-      </Container>
+      <ForSellers />
+      <ForBuyers />
       <Pricing />
       <Faq />
       <FinalCta />
-    </>
+    </div>
   );
 }

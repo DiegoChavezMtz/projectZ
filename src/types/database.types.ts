@@ -101,6 +101,7 @@ export type Database = {
           position: number
           price_cents: number
           released_at: string | null
+          seller_note: string | null
           session_id: string
           status: Database["public"]["Enums"]["item_status"]
           title: string
@@ -124,6 +125,7 @@ export type Database = {
           position: number
           price_cents: number
           released_at?: string | null
+          seller_note?: string | null
           session_id: string
           status?: Database["public"]["Enums"]["item_status"]
           title: string
@@ -147,6 +149,7 @@ export type Database = {
           position?: number
           price_cents?: number
           released_at?: string | null
+          seller_note?: string | null
           session_id?: string
           status?: Database["public"]["Enums"]["item_status"]
           title?: string
@@ -882,6 +885,78 @@ export type Database = {
         }
         Relationships: []
       }
+      ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          order_id: string
+          ratee_id: string
+          rater_id: string
+          rater_role: string
+          stars: number
+          tags: string[]
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          ratee_id: string
+          rater_id: string
+          rater_role: string
+          stars: number
+          tags?: string[]
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          ratee_id?: string
+          rater_id?: string
+          rater_role?: string
+          stars?: number
+          tags?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_ratee_id_fkey"
+            columns: ["ratee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_ratee_id_fkey"
+            columns: ["ratee_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_rater_id_fkey"
+            columns: ["rater_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_rater_id_fkey"
+            columns: ["rater_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reputation_events: {
         Row: {
           counterparty_id: string | null
@@ -1252,6 +1327,118 @@ export type Database = {
         }
         Relationships: []
       }
+      public_rating_breakdown: {
+        Row: {
+          rater_role: string | null
+          stars: number | null
+          total: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_ratee_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_ratee_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_rating_tags: {
+        Row: {
+          rater_role: string | null
+          tag: string | null
+          total: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_ratee_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_ratee_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_reputation_events: {
+        Row: {
+          counterparty_handle: string | null
+          counterparty_id: string | null
+          counterparty_name: string | null
+          dispute_note: string | null
+          dispute_resolution_note: string | null
+          id: string | null
+          kind: Database["public"]["Enums"]["rep_kind"] | null
+          occurred_at: string | null
+          order_id: string | null
+          payload: Json | null
+          role: string | null
+          session_code: string | null
+          session_id: string | null
+          session_title: string | null
+          status: Database["public"]["Enums"]["rep_status"] | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reputation_events_counterparty_id_fkey"
+            columns: ["counterparty_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reputation_events_counterparty_id_fkey"
+            columns: ["counterparty_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reputation_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reputation_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "claim_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reputation_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reputation_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_seller_profiles: {
         Row: {
           bio: string | null
@@ -1287,6 +1474,53 @@ export type Database = {
           },
           {
             foreignKeyName: "seller_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_user_stats: {
+        Row: {
+          avatar_path: string | null
+          deliveries_late: number | null
+          deliveries_on_time: number | null
+          deliveries_received: number | null
+          display_name: string | null
+          handle: string | null
+          is_deleted: boolean | null
+          is_seller: boolean | null
+          member_since: string | null
+          orders_closed_late: number | null
+          orders_closed_on_time: number | null
+          orders_paid_late: number | null
+          orders_paid_on_time: number | null
+          orders_released: number | null
+          orders_unpaid: number | null
+          rating_as_buyer_count: number | null
+          rating_as_buyer_sum: number | null
+          rating_as_seller_count: number | null
+          rating_as_seller_sum: number | null
+          seller_since: string | null
+          seller_slug: string | null
+          sessions_hosted: number | null
+          sessions_participated: number | null
+          shop_name: string | null
+          user_id: string | null
+          wins_count: number | null
+          wins_sold: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_stats_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "public_profiles"
@@ -1428,6 +1662,10 @@ export type Database = {
         Args: { p_now: string; p_test_only?: boolean }
         Returns: number
       }
+      pd_rating_reminders: {
+        Args: { p_now: string; p_test_only?: boolean }
+        Returns: number
+      }
       pd_reminders: {
         Args: { p_now: string; p_test_only?: boolean }
         Returns: number
@@ -1435,6 +1673,21 @@ export type Database = {
       pd_unpaid: {
         Args: { p_now: string; p_test_only?: boolean }
         Returns: number
+      }
+      pending_ratings: {
+        Args: never
+        Returns: {
+          completed_at: string
+          counterparty_handle: string
+          counterparty_id: string
+          counterparty_name: string
+          my_role: string
+          order_id: string
+          rate_until: string
+          session_code: string
+          session_id: string
+          session_title: string
+        }[]
       }
       post_announcement: {
         Args: { p_session_id: string; p_text: string }
@@ -1491,6 +1744,15 @@ export type Database = {
           p_pickup_note?: string
           p_target: Database["public"]["Enums"]["proof_target"]
           p_target_id: string
+        }
+        Returns: Json
+      }
+      submit_rating: {
+        Args: {
+          p_comment?: string
+          p_order_id: string
+          p_stars: number
+          p_tags?: string[]
         }
         Returns: Json
       }

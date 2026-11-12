@@ -56,8 +56,13 @@ export const fulfillmentContent = {
   },
   // --- Comprador ---------------------------------------------------------------------------
   buyer: {
-    title: 'Mis cuentas',
-    subtitle: 'Lo que ganaste en cada claim, lo que falta pagar y cómo va tu envío.',
+    // Textos provisionales (S13) hasta que Marketing los revise.
+    title: 'Por pagar y enviar',
+    subtitle: 'Lo que ganaste y falta pagar: comprobante, seguimiento de envío y guardadito.',
+    historyTitle: 'Historial',
+    historySubtitle: 'Tus claims cerrados y entregados.',
+    emptyPending: 'Nada por pagar por ahora.',
+    emptyHistory: 'Aún no tienes claims cerrados ni entregados.',
     emptyTitle: 'Aún no tienes cuentas',
     emptyText:
       'Cuando ganes piezas en un claim, aquí verás cuánto debes, cómo pagar y el seguimiento de tu envío.',
@@ -173,8 +178,8 @@ export const fulfillmentContent = {
   },
   // --- Vendedor ----------------------------------------------------------------------------
   seller: {
-    title: 'Cuentas',
-    subtitle: 'Cierra cuentas, revisa comprobantes y mantén tus envíos al día.',
+    title: 'Órdenes',
+    subtitle: 'Cierra órdenes, revisa comprobantes y mantén tus envíos al día.',
     tabs: {
       toClose: 'Por cerrar',
       awaitingPayment: 'Esperando pago',
@@ -185,15 +190,15 @@ export const fulfillmentContent = {
       unpaid: 'Impagas',
       released: 'Liberadas',
     },
-    tabsLabel: 'Bandejas de cuentas',
+    tabsLabel: 'Bandejas de órdenes',
     empty: {
-      toClose: 'No tienes cuentas por cerrar.',
+      toClose: 'No tienes órdenes por cerrar.',
       awaitingPayment: 'Nadie te debe por ahora.',
       toReview: 'No hay comprobantes por revisar.',
       toQuote: 'No hay envíos por cotizar.',
       toShip: 'No hay envíos pendientes.',
       shipped: 'Aún no tienes envíos en camino.',
-      unpaid: 'Ninguna cuenta venció sin pago.',
+      unpaid: 'Ninguna orden venció sin pago.',
       released: 'No hay guardaditos liberados.',
     },
     order: {
@@ -209,13 +214,13 @@ export const fulfillmentContent = {
       accumulateUntil: (date: string) => `Vigente hasta el ${date}`,
     },
     close: {
-      title: 'Cerrar cuenta',
+      title: 'Cerrar orden',
       hint: 'El plazo de pago del comprador empieza al cerrarla.',
       method: 'Entrega',
       shippingCost: 'Costo de envío (MXN)',
       shippingHint: 'Es el costo si el comprador elige envío al momento. Puede ser 0.',
-      submit: 'Cerrar cuenta',
-      done: 'Cuenta cerrada. Avisamos al comprador.',
+      submit: 'Cerrar orden',
+      done: 'Orden cerrada. Avisamos al comprador.',
       invalidCost: 'Escribe un costo válido en pesos, por ejemplo 80 o 80.50.',
     },
     review: {
@@ -234,7 +239,7 @@ export const fulfillmentContent = {
     },
     delivery: {
       buyer: (name: string) => `Para: ${name}`,
-      orders: (n: number) => (n === 1 ? '1 cuenta' : `${n} cuentas`),
+      orders: (n: number) => (n === 1 ? '1 orden' : `${n} órdenes`),
       address: 'Dirección',
       pickupNote: 'Punto de entrega',
       quoteDue: (date: string) => `Cotiza antes del ${date}`,
@@ -257,6 +262,14 @@ export const fulfillmentContent = {
         done: 'Listo. Avisamos al comprador.',
       },
     },
+  },
+  // --- Resumen de Mi tienda (S13). Textos provisionales hasta la revisión de Marketing. ---
+  shopSummary: {
+    heading: 'Órdenes',
+    toClose: 'Órdenes por cerrar',
+    toReview: 'Pagos por confirmar',
+    toShip: 'Envíos pendientes',
+    all: 'Ver órdenes',
   },
   // --- Ajustes de pago ---------------------------------------------------------------------
   settings: {

@@ -20,6 +20,7 @@ function toRow(
     entry,
     buyerName: buyer?.name ?? '',
     memberSince: buyer?.memberSince ?? null,
+    badge: buyer?.badge ?? null,
     isLeader: entry.id === leaderEntryId,
   };
 }

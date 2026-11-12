@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { common } from '@/content/es-MX';
+import { BrandMark } from '../../atoms/BrandMark';
 import { Container } from '../../atoms/Container';
+import { MotionSwitch } from '../../molecules/MotionSwitch';
 import { MobileMenu } from './MobileMenu';
 import styles from './SiteHeader.module.css';
 
@@ -16,7 +18,8 @@ export function SiteHeader({ actions, nav = common.site.nav }: Props) {
     <header className={styles.root}>
       <Container className={styles.inner}>
         <Link href="/" className={styles.logo} aria-label={common.site.homeLabel}>
-          {common.appName}
+          <BrandMark />
+          <span>{common.appName}</span>
         </Link>
         <nav className={styles.desktopNav} aria-label={common.site.mainNavLabel}>
           <ul className={styles.links}>
@@ -29,8 +32,19 @@ export function SiteHeader({ actions, nav = common.site.nav }: Props) {
             ))}
           </ul>
         </nav>
-        <div className={styles.desktopActions}>{actions}</div>
-        <MobileMenu nav={nav} actions={actions} />
+        <div className={styles.desktopActions}>
+          <MotionSwitch />
+          {actions}
+        </div>
+        <MobileMenu
+          nav={nav}
+          actions={
+            <>
+              {actions}
+              <MotionSwitch className={styles.mobileSwitch} />
+            </>
+          }
+        />
       </Container>
     </header>
   );

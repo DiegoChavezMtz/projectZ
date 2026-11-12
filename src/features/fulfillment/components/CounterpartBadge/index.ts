@@ -1,0 +1,1 @@
+export { CounterpartBadge } from './CounterpartBadge';

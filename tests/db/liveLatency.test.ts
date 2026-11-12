@@ -61,22 +61,20 @@ describe('rendimiento acotado del visor', () => {
     const arrivals: Map<string, number>[] = Array.from({ length: CLIENTS }, () => new Map());
     for (let c = 0; c < CLIENTS; c++) {
       const client = anonClient();
-      const channel = client
-        .channel(`perf-${live.sessionId}-${c}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'claim_items',
-            filter: `session_id=eq.${live.sessionId}`,
-          },
-          (payload) => {
-            const row = payload.new as { id: string; leader_entry_id: string | null };
-            if (row.leader_entry_id && !arrivals[c]!.has(row.id))
-              arrivals[c]!.set(row.id, Date.now());
-          },
-        );
+      const channel = client.channel(`perf-${live.sessionId}-${c}`).on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'claim_items',
+          filter: `session_id=eq.${live.sessionId}`,
+        },
+        (payload) => {
+          const row = payload.new as { id: string; leader_entry_id: string | null };
+          if (row.leader_entry_id && !arrivals[c]!.has(row.id))
+            arrivals[c]!.set(row.id, Date.now());
+        },
+      );
       open.push({ client, channel });
       await new Promise<void>((resolve, reject) =>
         channel.subscribe((status) => {

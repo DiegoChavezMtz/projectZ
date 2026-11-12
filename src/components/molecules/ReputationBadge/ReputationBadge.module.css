@@ -1,0 +1,35 @@
+.root {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-height: 44px;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.root:hover .item,
+.root:hover .muted {
+  color: var(--color-text);
+}
+
+.compact {
+  gap: var(--space-1) var(--space-2);
+  min-height: 44px;
+  font-size: var(--font-size-xs);
+}
+
+.rating {
+  color: var(--color-accent-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.item {
+  color: var(--color-text-muted);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}

@@ -1,1 +1,1 @@
-export { SellerGate, SellerDashboardView } from './SellerGate';
+export { SellerGate, SellerDashboardView, ShopSettingsView } from './SellerGate';

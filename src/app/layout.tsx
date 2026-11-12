@@ -1,12 +1,23 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
-import { PageShell } from '@/components/templates/PageShell';
+import { Suspense } from 'react';
+import { Anton, Figtree, JetBrains_Mono } from 'next/font/google';
 import { common } from '@/content/es-MX';
-import { SessionMenu } from '@/features/auth';
+import { motionInitScript } from '@/utils/motion';
 import { getSiteUrl } from '@/utils/site';
 import '@/styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+const anton = Anton({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-anton',
+  display: 'swap',
+});
+const figtree = Figtree({ subsets: ['latin'], variable: '--font-figtree', display: 'swap' });
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -15,15 +26,22 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0e0e10',
-  colorScheme: 'dark',
+  themeColor: '#ff8a1f',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-MX" className={inter.variable}>
+    <html
+      lang="es-MX"
+      suppressHydrationWarning
+      className={`${anton.variable} ${figtree.variable} ${jetbrains.variable}`}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: motionInitScript }} />
+      </head>
       <body>
-        <PageShell headerActions={<SessionMenu />}>{children}</PageShell>
+        <Suspense fallback={null}>{children}</Suspense>
       </body>
     </html>
   );

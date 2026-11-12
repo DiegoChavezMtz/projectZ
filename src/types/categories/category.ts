@@ -24,4 +24,6 @@ export type CategoryDefinition<TAttributes = Record<string, unknown>> = {
   /** Relación de aspecto de la imagen (ancho:alto). */
   imageAspect: { width: number; height: number };
   fields: CategoryField[];
+  /** Valores de `attributes` con los que nace un borrador del modo escáner (se corrigen en la revisión). */
+  draftAttributes: Record<string, unknown>;
 };

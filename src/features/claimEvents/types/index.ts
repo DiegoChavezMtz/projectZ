@@ -1,3 +1,4 @@
+import type { BadgeData } from '@/types/reputation';
 import type { ClaimItem, ClaimSession, SessionFeedEvent } from '@/types/claims';
 import type { Database } from '@/types/database.types';
 
@@ -46,7 +47,13 @@ export type ConsoleEntry = Pick<
 >;
 
 /** Comprador tal como lo ve el vendedor: nombre público y desde cuándo tiene cuenta. */
-export type BuyerInfo = { id: string; name: string; memberSince: string };
+export type BuyerInfo = {
+  id: string;
+  name: string;
+  memberSince: string;
+  /** Insignia de reputación (misma consulta que el perfil público del comprador). */
+  badge?: BadgeData | null;
+};
 
 export type ConsoleConnection = 'connecting' | 'online' | 'reconnecting' | 'offline';
 
@@ -106,6 +113,7 @@ export type QueueRow = {
   entry: ConsoleEntry;
   buyerName: string;
   memberSince: string | null;
+  badge: BadgeData | null;
   isLeader: boolean;
 };
 

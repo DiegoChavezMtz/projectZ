@@ -2,9 +2,8 @@
   position: sticky;
   z-index: var(--z-sticky);
   top: 0;
-  border-bottom: 1px solid var(--color-border);
-  background: rgb(14 14 16 / 0.92);
-  backdrop-filter: blur(12px);
+  border-bottom: var(--zl-border-w) solid var(--color-border);
+  background: var(--color-bg);
 }
 
 .inner {
@@ -19,11 +18,13 @@
   display: inline-flex;
   min-height: var(--tap-target-min);
   align-items: center;
+  gap: var(--space-2);
   color: var(--color-text);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-tight);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
   text-decoration: none;
+  text-transform: uppercase;
 }
 
 .desktopNav,
@@ -46,11 +47,12 @@
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
 }
 
 .link:hover {
+  background: var(--color-surface);
   color: var(--color-text);
 }
 
@@ -100,6 +102,10 @@
   text-decoration: none;
 }
 
+.mobileSwitch {
+  align-self: flex-start;
+}
+
 .mobileActions {
   display: flex;
   flex-direction: column;
@@ -109,7 +115,7 @@
   border-top: 1px solid var(--color-border);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1100px) {
   .desktopNav {
     display: block;
     margin-right: auto;

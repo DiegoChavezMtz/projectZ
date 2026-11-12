@@ -1,0 +1,33 @@
+.root {
+  display: inline-flex;
+  min-height: var(--tap-target-min);
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 6px 4px 14px;
+  border: var(--zl-border-w) solid var(--zl-color-ivory);
+  border-radius: var(--radius-full);
+  background: var(--zl-color-ink);
+  color: var(--zl-color-ivory);
+  font-family: var(--zl-font-body);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.onInk {
+  border-color: var(--zl-color-ink);
+}
+
+.state {
+  padding: 6px 9px;
+  border-radius: var(--radius-full);
+  background: var(--zl-color-surface-2);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.root[aria-checked='true'] .state {
+  background: var(--zl-color-jade);
+  color: var(--zl-color-ink);
+}

@@ -15,7 +15,7 @@ import { claimEventsContent } from '../../content/es-MX';
 import { useClaimForm } from '../../hooks/useClaimForm';
 import { saveItemAction } from '../../services/claimEvents.actions';
 import { itemImageUrl } from '../../utils/image';
-import { itemFormSchema } from '../../utils/item.schemas';
+import { SELLER_NOTE_MAX, itemFormSchema } from '../../utils/item.schemas';
 import { ItemImagePicker } from '../ItemImagePicker';
 import styles from './ItemForm.module.css';
 
@@ -33,6 +33,7 @@ type Props = {
 type Values = {
   title: string;
   price: string;
+  note: string;
   isPreview: boolean;
   attributes: Record<string, string>;
 };
@@ -47,6 +48,7 @@ export function ItemForm({ sessionId, categoryId, item, onDone, onCancel }: Prop
   const defaults: Values = {
     title: item?.title ?? '',
     price: item ? centsToPesosInput(item.price_cents) : '',
+    note: item?.seller_note ?? '',
     isPreview: item?.is_preview ?? false,
     attributes: Object.fromEntries(
       category.fields.map((field) => [field.name, String(saved[field.name] ?? '')]),
@@ -142,6 +144,17 @@ export function ItemForm({ sessionId, categoryId, item, onDone, onCancel }: Prop
           }
         </FormField>
       ))}
+
+      <FormField label={c.note} hint={c.noteHint} error={errorFor('note')}>
+        {(control) => (
+          <Input
+            {...control}
+            {...register('note')}
+            maxLength={SELLER_NOTE_MAX}
+            autoComplete="off"
+          />
+        )}
+      </FormField>
 
       <Checkbox label={c.preview} hint={c.previewHint} {...register('isPreview')} />
 

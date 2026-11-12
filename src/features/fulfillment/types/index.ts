@@ -1,3 +1,4 @@
+import type { BadgeData } from '@/types/reputation';
 import type { Database } from '@/types/database.types';
 
 // Entidades de la feature 'fulfillment' (cuentas, pagos, entregas, guardadito).
@@ -79,6 +80,8 @@ export type OrderView = {
   accumulateDays: number;
   /** Vendedor (vista del comprador) o comprador (vista del vendedor). */
   counterpart: string;
+  /** Reputación de la contraparte (una consulta por pantalla). */
+  counterpartBadge: BadgeData | null;
   items: OrderItemLine[];
   proofs: ProofView[];
   dispute: DisputeView | null;
@@ -87,6 +90,7 @@ export type OrderView = {
 export type DeliveryView = {
   delivery: DeliveryRow;
   counterpart: string;
+  counterpartBadge: BadgeData | null;
   orders: OrderView[];
   proofs: ProofView[];
 };

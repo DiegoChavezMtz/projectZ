@@ -1,0 +1,1 @@
+export { LandingPhoto } from './LandingPhoto';

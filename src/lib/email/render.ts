@@ -19,6 +19,7 @@ import { deliveryReminder } from './templates/deliveryReminder';
 import { accumulateReminder } from './templates/accumulateReminder';
 import { accumulateNotice } from './templates/accumulateNotice';
 import { accumulateReleased } from './templates/accumulateReleased';
+import { ratingReminder } from './templates/ratingReminder';
 
 type Context = { appUrl: string };
 type Template<T extends TemplateName> = (data: TemplateDataMap[T], ctx: Context) => RenderedEmail;
@@ -42,6 +43,7 @@ const templates: { [T in TemplateName]: Template<T> } = {
   accumulateReminder,
   accumulateNotice,
   accumulateReleased,
+  ratingReminder,
 };
 
 /** Ejemplo de datos por plantilla (pnpm email:preview y tests). */
@@ -128,6 +130,13 @@ export const sampleData: TemplateDataMap = {
     role: 'buyer',
     counterpartName: 'Cartas del Centro',
     reason: 'grace_expired',
+  },
+  ratingReminder: {
+    displayName: 'Luis',
+    role: 'buyer',
+    counterpartName: 'Cartas del Centro',
+    reference: 'Claim de viernes',
+    rateUntil: '2026-11-20T18:00:00Z',
   },
 };
 

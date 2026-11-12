@@ -41,7 +41,7 @@ export const claimEventsContent = {
   } as Record<string, string>,
   list: {
     console: 'Consola',
-    title: 'Tus claims',
+    title: 'Claims',
     subtitle: 'Crea eventos, agrega artículos y compártelos con tus compradores.',
     newEvent: 'Nuevo claim',
     tabsLabel: 'Filtrar por estado',
@@ -80,13 +80,13 @@ export const claimEventsContent = {
     releaseManual: 'Uno por uno, yo decido',
     autoConfirm: 'Confirmar automáticamente al primero que reclama',
     autoConfirmHint: 'Si lo desactivas, tú confirmas cada claim.',
-    closeDeadline: 'Plazo para cerrar cuentas (horas)',
-    closeDeadlineHint: 'Entre 1 y 168. Tiempo que tienes para cerrar la cuenta de cada comprador.',
+    closeDeadline: 'Plazo para cerrar órdenes (horas)',
+    closeDeadlineHint: 'Entre 1 y 168. Tiempo que tienes para cerrar la orden de cada comprador.',
     paymentDeadline: 'Plazo de pago (horas)',
-    paymentDeadlineHint: 'Entre 1 y 336. Desde que cierras la cuenta.',
+    paymentDeadlineHint: 'Entre 1 y 336. Desde que cierras la orden.',
     shippingDeadline: 'Plazo de entrega (horas)',
     shippingDeadlineHint: 'Entre 24 y 720. Desde que el comprador solicita la entrega.',
-    allowAccumulate: 'Permitir juntar cuentas en una sola entrega',
+    allowAccumulate: 'Permitir juntar órdenes en una sola entrega',
     lockedNotice:
       'Este claim ya está publicado. Las reglas y plazos no se pueden cambiar para no afectar a los compradores.',
     lockedField: 'Bloqueado tras publicar.',
@@ -105,6 +105,10 @@ export const claimEventsContent = {
     add: (singular: string) => `Agregar ${singular}`,
     editTitle: (singular: string) => `Editar ${singular}`,
     newTitle: (singular: string) => `Nueva ${singular}`,
+    openScanner: 'Modo escáner',
+    note: 'Nota del vendedor',
+    noteHint:
+      'Opcional. Por ejemplo, tu nombre y la fecha. Se muestra bajo la pieza, no en la foto.',
     reorderHint:
       'Arrastra para reordenar, o usa los botones de subir y bajar. El orden se guarda solo.',
     handle: 'Arrastrar para reordenar',
@@ -155,6 +159,20 @@ export const claimEventsContent = {
     backToEdit: 'Volver a editar',
     scheduledOn: (when: string) => `Programado para ${when}.`,
   },
+  // Resumen de Mi tienda (S13). Textos provisionales hasta la revisión de Marketing.
+  shopSummary: {
+    activeTitle: 'Claim activo',
+    nextTitle: 'Próximo claim',
+    noneTitle: 'No tienes un claim en curso',
+    noneText: 'Crea tu primer claim, agrega piezas y comparte el enlace con tus compradores.',
+    create: 'Crear claim',
+    openConsole: 'Abrir consola',
+    openEvent: 'Ver claim',
+    allClaims: 'Todos los claims',
+    when: (starts: string) => `Empieza ${starts}`,
+    closes: (closes: string) => `Cierra ${closes}`,
+    pendingToConfirm: 'Pendientes por dar el tuyo',
+  },
 } as const;
 
 // Errores de las acciones del vendedor en vivo (RPC del motor). Se mantienen aparte de `claimEventsContent`
@@ -195,7 +213,7 @@ export const liveConsoleContent = {
         : `El claim quedará en vivo y saldrán todas tus ${noun} (${count}) al mismo tiempo.`,
     confirmEndTitle: '¿Terminar el claim?',
     confirmEndText:
-      'Los intentos que sigan abiertos se cierran y se arma la cuenta de cada comprador. Esto no se puede deshacer.',
+      'Los intentos que sigan abiertos se cierran y se arma la orden de cada comprador. Esto no se puede deshacer.',
     confirm: 'Sí, continuar',
     cancel: 'Cancelar',
     started: 'El claim está en vivo.',
@@ -304,6 +322,6 @@ export const liveConsoleContent = {
     noBuyers: 'Nadie ganó artículos en este claim.',
     buyerLine: (count: number, total: string) =>
       `${count === 1 ? '1 claim ganado' : `${count} claims ganados`} · ${total}`,
-    accounts: 'Cuentas',
+    accounts: 'Órdenes',
   },
 } as const;

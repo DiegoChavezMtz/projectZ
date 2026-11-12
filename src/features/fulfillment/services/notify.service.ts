@@ -389,6 +389,27 @@ async function sendQueued(template: string, userId: string, rawPayload: Json) {
       );
       return;
     }
+    case 'ratingReminder': {
+      const order = await loadOrder(str(payload.order_id));
+      if (!order?.completed_at) return;
+      const buyer = order.buyer_id === userId;
+      const [other, title] = await Promise.all([
+        buyer ? person(order.seller_id) : buyerName(order.buyer_id).then((name) => ({ name })),
+        sessionTitle(order.session_id),
+      ]);
+      await emailService.send({
+        to: recipient.email,
+        template: 'ratingReminder',
+        data: {
+          displayName: recipient.name,
+          role: buyer ? 'buyer' : 'seller',
+          counterpartName: other?.name ?? '',
+          reference: title,
+          rateUntil: new Date(Date.parse(order.completed_at) + 14 * 24 * 3_600_000).toISOString(),
+        },
+      });
+      return;
+    }
     default:
       return;
   }

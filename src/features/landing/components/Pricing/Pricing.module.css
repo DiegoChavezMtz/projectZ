@@ -1,51 +1,63 @@
-.root {
-  padding-block: var(--space-12);
-  background: radial-gradient(ellipse 60% 40% at 50% 0%, var(--color-accent-soft), transparent 70%);
-  scroll-margin-top: var(--header-height);
-}
-
 .trial {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
   gap: var(--space-3);
   max-width: 40rem;
-  margin: calc(var(--space-6) * -1) auto var(--space-8);
-  color: var(--color-text-muted);
-  text-align: center;
+  margin: calc(var(--space-4) * -1) 0 var(--space-8);
+  font-weight: var(--font-weight-semibold);
 }
 
 .plans {
   display: grid;
   max-width: 52rem;
   gap: var(--space-4);
-  margin-inline: auto;
 }
 
+/* Planes sobre tinta: marfil 17.5:1; el destacado va en rosa con texto de tinta (5.6:1) */
 .plan {
+  --color-text: var(--zl-color-ivory);
+  --color-text-muted: var(--zl-color-muted);
+  --color-accent: var(--zl-color-orange);
+  --color-on-accent: var(--zl-color-ink);
+  --color-accent-hover: var(--zl-color-orange-soft);
+  --color-accent-text: var(--zl-color-orange);
+  --color-border-strong: var(--zl-color-ivory);
+  --color-focus-ring: var(--zl-color-ivory);
+  --ap-pill-border: var(--zl-color-orange);
+
   position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-8) var(--space-6);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  background: var(--color-surface);
+  background: var(--zl-color-ink);
+  color: var(--zl-color-ivory);
 }
 
 .highlighted {
-  border-color: var(--color-accent);
-  background: linear-gradient(180deg, var(--color-surface-raised), var(--color-surface));
-  box-shadow:
-    0 0 0 1px var(--color-accent),
-    0 var(--space-4) var(--space-12) var(--color-accent-soft);
+  --color-text: var(--zl-color-ink);
+  --color-text-muted: var(--zl-soft-pink);
+  --color-accent: var(--zl-color-ink);
+  --color-on-accent: var(--zl-color-ivory);
+  --color-accent-hover: var(--zl-color-surface-2);
+  --color-accent-text: var(--zl-color-ink);
+  --color-border-strong: var(--zl-color-ink);
+  --color-focus-ring: var(--zl-color-ink);
+  --ap-pill-border: var(--zl-color-ink);
+
+  background: var(--zl-color-pink);
+  color: var(--zl-color-ink);
 }
 
 .planBadge {
   position: absolute;
   top: var(--space-5);
   right: var(--space-5);
+  border-color: var(--zl-color-ink);
+  background: var(--zl-color-ink);
+  color: var(--zl-color-ivory);
 }
 
 .priceRow {
@@ -56,17 +68,9 @@
 }
 
 .price {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-tight);
+  font-family: var(--font-display);
+  font-size: var(--zl-text-title);
   line-height: 1;
-}
-
-.highlighted .price {
-  background: var(--gradient-gold);
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
 }
 
 .period {
@@ -94,7 +98,7 @@
 .check {
   flex-shrink: 0;
   margin-top: var(--space-1);
-  color: var(--color-success);
+  color: var(--color-accent-text);
 }
 
 .buyer {
@@ -102,22 +106,17 @@
   max-width: 52rem;
   flex-direction: column;
   gap: var(--space-1);
-  margin: var(--space-4) auto 0;
+  margin: var(--space-4) 0 0;
   padding: var(--space-5) var(--space-6);
-  border: 1px dashed var(--color-border-strong);
+  border: var(--zl-border-w) dashed var(--zl-color-ink);
   border-radius: var(--radius-lg);
 }
 
 .footnote {
   margin-top: var(--space-4);
-  text-align: center;
 }
 
 @media (min-width: 768px) {
-  .root {
-    padding-block: var(--space-16);
-  }
-
   .plans {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-6);

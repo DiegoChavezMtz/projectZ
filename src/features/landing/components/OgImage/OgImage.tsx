@@ -2,10 +2,12 @@ import { common } from '@/content/es-MX';
 import { landingContent } from '../../content/es-MX';
 
 // Satori (next/og) no lee CSS variables ni CSS Modules: los valores van inlineados, igual que en los correos.
-const BG = '#0e0e10';
-const ACCENT = '#c9a96e';
-const TEXT = '#f2f0eb';
-const MUTED = '#a9a6a0';
+// Identidad Cempasúchil: naranja dominante, titular en mayúsculas condensadas (fuente del sistema: Satori no carga Anton aquí).
+const BG = '#ff8a1f';
+const INK = '#14110d';
+const IVORY = '#fff6e5';
+const SOFT = '#3b2a14';
+const DISPLAY = 'Impact, "Arial Narrow Bold", Arial, sans-serif';
 
 export function OgImage() {
   const { ogTagline, description } = landingContent.meta;
@@ -19,14 +21,42 @@ export function OgImage() {
         justifyContent: 'center',
         padding: 80,
         background: BG,
-        color: TEXT,
+        color: INK,
       }}
     >
-      <div style={{ fontSize: 40, color: ACCENT, fontWeight: 700 }}>{common.appName}</div>
-      <div style={{ fontSize: 84, fontWeight: 700, marginTop: 24, lineHeight: 1.1 }}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            padding: '8px 24px',
+            borderRadius: 999,
+            background: INK,
+            color: IVORY,
+            fontFamily: DISPLAY,
+            fontWeight: 700,
+            fontSize: 40,
+            letterSpacing: 2,
+            textTransform: 'uppercase',
+          }}
+        >
+          {common.appName}
+        </div>
+      </div>
+      <div
+        style={{
+          fontFamily: DISPLAY,
+          fontWeight: 700,
+          fontSize: 110,
+          marginTop: 24,
+          lineHeight: 1,
+          textTransform: 'uppercase',
+        }}
+      >
         {ogTagline}
       </div>
-      <div style={{ fontSize: 32, color: MUTED, marginTop: 32, maxWidth: 900 }}>{description}</div>
+      <div style={{ fontSize: 32, fontWeight: 600, color: SOFT, marginTop: 32, maxWidth: 900 }}>
+        {description}
+      </div>
     </div>
   );
 }

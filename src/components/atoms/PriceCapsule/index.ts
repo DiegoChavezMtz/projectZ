@@ -1,0 +1,1 @@
+export { PriceCapsule } from './PriceCapsule';

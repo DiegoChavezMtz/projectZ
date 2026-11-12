@@ -22,7 +22,7 @@
 
 .more > summary {
   min-height: var(--tap-target-min);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   cursor: pointer;
   font-size: var(--font-size-sm);
   line-height: var(--tap-target-min);

@@ -37,7 +37,7 @@
 }
 
 .cell:focus-visible {
-  border-color: var(--color-accent);
+  border-color: var(--color-text);
 }
 
 .cell[aria-invalid='true'] {

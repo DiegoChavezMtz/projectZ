@@ -1,15 +1,16 @@
-import { Avatar } from '@/components/atoms/Avatar';
 import { Button } from '@/components/atoms/Button';
 import { common } from '@/content/es-MX';
-import { publicEnv } from '@/lib/env.public';
 import { authContent } from '../../content/es-MX';
-import { authService } from '../../services/auth.service';
 import { signOutAction } from '../../services/auth.actions';
-import { profileService } from '../../services/profile.service';
-import { avatarPublicUrl } from '../../utils/avatar';
+import { authService } from '../../services/auth.service';
+import { DEFAULT_APP_PATH } from '../../utils/nextPath';
 import styles from './SessionMenu.module.css';
 
-/** Acciones de sesión del header, resueltas en el servidor (sin parpadeo). */
+/**
+ * Acciones de sesión del header público, resueltas en el servidor (sin parpadeo). Una persona con sesión
+ * que abre una página pública ve «Ir a mi cuenta» (no se le redirige a la fuerza); el menú completo vive
+ * en la barra de la app (`AppUserMenu`).
+ */
 export async function SessionMenu() {
   const user = await authService.getUser();
   if (!user) {
@@ -25,32 +26,10 @@ export async function SessionMenu() {
     );
   }
 
-  const [profile, seller] = await Promise.all([
-    authService.getProfile(user.id),
-    profileService.getSeller(user),
-  ]);
-  const name = profile?.display_name ?? authContent.session.account;
   return (
     <div className={styles.root} role="group" aria-label={authContent.session.menuLabel}>
-      {seller ? (
-        <Button href="/dashboard" variant="ghost" size="sm">
-          {authContent.seller.myShop}
-        </Button>
-      ) : (
-        <Button href="/onboarding/seller" variant="ghost" size="sm">
-          {authContent.seller.sell}
-        </Button>
-      )}
-      <Button href="/orders" variant="ghost" size="sm">
-        {authContent.session.myOrders}
-      </Button>
-      <Button href="/account" variant="ghost" size="sm">
-        <Avatar
-          size="sm"
-          name={name}
-          src={avatarPublicUrl(publicEnv.NEXT_PUBLIC_SUPABASE_URL, profile?.avatar_path)}
-        />
-        {name}
+      <Button href={DEFAULT_APP_PATH} size="sm">
+        {authContent.session.goToAccount}
       </Button>
       <form action={signOutAction}>
         <Button type="submit" variant="secondary" size="sm">

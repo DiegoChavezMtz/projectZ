@@ -1,0 +1,61 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--zl-state-available);
+  color: var(--zl-color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* El punto cambia de forma con el estado: el color nunca es la única señal. */
+.root::before {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--zl-color-ink);
+  content: '';
+}
+
+.claimed {
+  background: var(--zl-state-claimed);
+}
+
+.offer {
+  background: var(--zl-state-offer);
+}
+
+.offer::before {
+  border-radius: 1px;
+  rotate: 45deg;
+}
+
+.sold {
+  background: var(--zl-state-sold);
+}
+
+.sold::before {
+  border-radius: 2px;
+}
+
+.mine {
+  background: var(--zl-color-jade);
+}
+
+.mine::before {
+  width: 10px;
+  height: 6px;
+  border-bottom: 3px solid var(--zl-color-ink);
+  border-left: 3px solid var(--zl-color-ink);
+  border-radius: 0;
+  background: transparent;
+  rotate: -45deg;
+  translate: 0 -2px;
+}

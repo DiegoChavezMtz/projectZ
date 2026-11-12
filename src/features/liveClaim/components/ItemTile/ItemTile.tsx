@@ -2,7 +2,10 @@ import { memo } from 'react';
 import clsx from 'clsx';
 import { Badge } from '@/components/atoms/Badge';
 import { Button } from '@/components/atoms/Button';
-import { Picture } from '@/components/atoms/Picture';
+import { PriceCapsule } from '@/components/atoms/PriceCapsule';
+import type { PieceState } from '@/components/atoms/StatePill';
+import { PieceFrame } from '@/components/molecules/PieceFrame';
+import { ReputationBadge } from '@/components/molecules/ReputationBadge';
 import { Text } from '@/components/atoms/Text';
 import { publicEnv } from '@/lib/env.public';
 import type { ClaimItem } from '@/types/claims';
@@ -14,13 +17,14 @@ import styles from './ItemTile.module.css';
 
 const c = liveClaimContent;
 
-const stateTone: Record<PublicItemState, 'neutral' | 'success' | 'accent' | 'info'> = {
-  upcoming: 'neutral',
-  available: 'success',
-  claimed: 'accent',
-  offers: 'info',
-  sold: 'neutral',
-  withdrawn: 'neutral',
+/** Estado de la pieza en el diseño: el relleno acompaña siempre a la etiqueta de texto. */
+const stateKind: Record<PublicItemState, PieceState> = {
+  upcoming: 'sold',
+  available: 'available',
+  claimed: 'claimed',
+  offers: 'offer',
+  sold: 'sold',
+  withdrawn: 'sold',
 };
 
 type Props = {
@@ -87,16 +91,17 @@ function ItemTileBase({
       aria-label={c.item.tileLabel(item.title, stateLabel, price)}
     >
       <div className={styles.media}>
-        <Picture
+        <PieceFrame
           aspect={category.imageAspect}
           src={itemImageUrl(publicEnv.NEXT_PUBLIC_SUPABASE_URL, item.image_path)}
           alt={item.title}
           placeholder={c.item.missingImage}
           priority={priority}
+          state={{
+            kind: view.relation === 'won' ? 'mine' : stateKind[view.state],
+            label: stateLabel,
+          }}
         />
-        <Badge tone={stateTone[view.state]} className={styles.state}>
-          {stateLabel}
-        </Badge>
         {item.is_featured ? (
           <Badge tone="accent" className={styles.featured}>
             {c.item.featured}
@@ -118,14 +123,23 @@ function ItemTileBase({
             ))}
           </div>
         ) : null}
-        <p className={styles.price}>{price}</p>
+        <PriceCapsule className={styles.price}>{price}</PriceCapsule>
 
         {leaderName && (view.state === 'claimed' || view.state === 'sold') ? (
           <Text size="sm" tone="muted" className={styles.leader}>
             {c.leader.by(leaderName)}
-            {item.leader_wins_count != null && item.leader_wins_count > 0
-              ? ` · ${c.leader.wins(item.leader_wins_count)}`
-              : ''}
+            {item.leader_handle ? (
+              <>
+                {' · '}
+                <ReputationBadge
+                  compact
+                  handle={item.leader_handle}
+                  name={leaderName}
+                  winsCount={item.leader_wins_count ?? 0}
+                  isSeller={false}
+                />
+              </>
+            ) : null}
           </Text>
         ) : null}
 

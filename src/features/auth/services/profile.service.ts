@@ -59,6 +59,19 @@ export const profileService = {
     return data ?? null;
   },
 
+  /** Perfil de la tienda (nombre, descripción, ciudad). RLS `seller_profiles_update_own`; el enlace no cambia. */
+  async updateSeller(
+    userId: string,
+    input: { shopName: string; bio: string | null; city: string | null },
+  ): Promise<void> {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('seller_profiles')
+      .update({ shop_name: input.shopName, bio: input.bio, city: input.city })
+      .eq('user_id', userId);
+    if (error) throw new AppError('seller_failed', 'No se pudo guardar la tienda', error);
+  },
+
   async createSeller(
     userId: string,
     input: {

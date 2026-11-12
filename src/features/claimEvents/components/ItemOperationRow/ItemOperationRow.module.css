@@ -44,7 +44,7 @@
 }
 
 .price {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-bold);
 }

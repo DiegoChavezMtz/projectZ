@@ -5,43 +5,6 @@
   padding-block: var(--space-10) var(--space-16);
 }
 
-.tabs {
-  display: flex;
-  gap: var(--space-2);
-  overflow-x: auto;
-  padding-bottom: var(--space-1);
-}
-
-.tab {
-  display: inline-flex;
-  min-height: var(--tap-target-min);
-  flex: none;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  text-decoration: none;
-}
-
-.tab:hover {
-  border-color: var(--color-accent);
-  color: var(--color-text);
-}
-
-.active {
-  border-color: var(--color-accent);
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-}
-
-.count {
-  font-variant-numeric: tabular-nums;
-  opacity: 0.8;
-}
-
 .list {
   display: grid;
   gap: var(--space-4);
@@ -79,7 +42,7 @@
 
 .items summary {
   min-height: var(--tap-target-min);
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-size: var(--font-size-sm);
   cursor: pointer;
 }
@@ -100,4 +63,9 @@
 
 .address {
   overflow-wrap: anywhere;
+}
+
+/* Subtítulo separado del título */
+.root > header > p {
+  margin-top: var(--space-3);
 }

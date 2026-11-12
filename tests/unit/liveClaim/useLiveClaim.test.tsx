@@ -36,7 +36,7 @@ const snapshot: LiveSnapshot = {
   items: [item({ id: 'a' })],
   feed: [feedEvent(1)],
   serverNow: '2026-10-26T10:00:00.000Z',
-  seller: { id: 'seller-1', shopName: 'Tienda', handle: null, city: null },
+  seller: { id: 'seller-1', shopName: 'Tienda', handle: null, city: null, badge: null },
 };
 const current = () => channels.at(-1)!;
 const status = (s: RealtimeStatus) => act(() => current().handlers.onStatus(s));

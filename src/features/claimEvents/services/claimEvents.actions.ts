@@ -143,6 +143,7 @@ export async function saveItemAction(_prev: ActionState, formData: FormData): Pr
   const parsed = itemFormSchema(session.category).safeParse({
     title: text(formData, 'title'),
     price: text(formData, 'price'),
+    note: text(formData, 'note'),
     isPreview: formData.get('isPreview'),
     attributes: readAttributes((name) => text(formData, name), category),
   });
@@ -157,6 +158,7 @@ export async function saveItemAction(_prev: ActionState, formData: FormData): Pr
     title: parsed.data.title,
     price_cents: parsed.data.price,
     is_preview: parsed.data.isPreview,
+    seller_note: parsed.data.note,
     attributes: parsed.data.attributes as Record<string, unknown>,
   };
   try {

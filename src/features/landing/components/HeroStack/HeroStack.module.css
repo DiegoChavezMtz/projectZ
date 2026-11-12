@@ -1,0 +1,14 @@
+.stage {
+  position: relative;
+  height: calc(var(--pw) * 1.4 + 16px - var(--ov) + 8px);
+}
+
+.stack {
+  right: -4px;
+}
+
+@media (min-width: 900px) {
+  .stack {
+    right: 0;
+  }
+}

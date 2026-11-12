@@ -58,6 +58,11 @@ export async function PreviewClaimView({ id }: { id: string }) {
               <Text size="sm" tone="accent">
                 {formatMXN(item.price_cents)}
               </Text>
+              {item.seller_note ? (
+                <Text size="sm" tone="muted">
+                  {item.seller_note}
+                </Text>
+              ) : null}
             </Panel>
           </li>
         ))}

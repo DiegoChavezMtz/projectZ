@@ -1,13 +1,10 @@
-.audiences {
-  display: grid;
-  gap: var(--space-4);
-  padding-block: var(--space-12);
+/* Cuánto cruza la pila del hero hacia el bloque siguiente */
+.root {
+  --ov-hero: 120px;
 }
 
-@media (min-width: 768px) {
-  .audiences {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-6);
-    padding-block: var(--space-16);
+@media (min-width: 900px) {
+  .root {
+    --ov-hero: 100px;
   }
 }

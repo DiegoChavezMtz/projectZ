@@ -1,11 +1,14 @@
 'use client';
 
+import { useEffect } from 'react';
 import { StatusPage, StatusPageAction } from '@/components/templates/StatusPage';
+import { reportClientError } from '@/lib/observability/client';
 import { common } from '@/content/es-MX';
 import '@/styles/globals.css';
 
 // Reemplaza al layout raíz cuando éste falla: define su propio documento.
-export default function GlobalError({ retry }: { error: unknown; retry: () => void }) {
+export default function GlobalError({ error, retry }: { error: unknown; retry: () => void }) {
+  useEffect(() => reportClientError(error), [error]);
   const { title, description, action } = common.error;
   return (
     <html lang="es-MX">

@@ -1,38 +1,49 @@
+/* La pila del hero es la más grande y cruza al bloque siguiente (que reserva --ov-hero). */
 .root {
-  overflow: hidden;
-  padding-block: var(--space-10) var(--space-12);
-  background:
-    radial-gradient(ellipse 70% 50% at 80% 0%, var(--color-accent-soft), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 0% 100%, var(--color-accent-soft), transparent 70%);
+  --pw: min(64vw, 260px);
+  --ov: var(--ov-hero);
+
+  padding-top: var(--space-10);
+  padding-bottom: 0;
 }
 
 .inner {
   display: grid;
-  align-items: center;
-  gap: var(--space-12);
+  gap: var(--space-5);
 }
 
 .copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-5);
+  gap: var(--space-4);
 }
 
-.copy .title {
-  font-size: var(--font-size-hero);
-  line-height: 1.05;
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 14vw, 4.2rem);
+  font-weight: 400;
+  line-height: var(--zl-leading-display);
+  text-transform: uppercase;
+  text-wrap: balance;
 }
 
+/* Fragmento invertido: naranja sobre tinta (8.0:1) */
 .accent {
-  background: var(--gradient-gold);
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
+  display: inline-block;
+  padding: 0.06em 0.14em 0;
+  margin-top: 0.08em;
+  line-height: 1;
+  border-radius: var(--radius-md);
+  background: var(--zl-color-ink);
+  box-decoration-break: clone;
+  color: var(--zl-color-orange);
+  -webkit-box-decoration-break: clone;
 }
 
 .subtitle {
   max-width: 34rem;
+  font-size: 1.05rem;
 }
 
 .actions {
@@ -47,8 +58,8 @@
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-5);
   padding: 0;
-  color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
   list-style: none;
 }
 
@@ -58,24 +69,31 @@
   gap: var(--space-2);
 }
 
-.check {
-  color: var(--color-success);
-}
-
-@media (min-width: 768px) {
-  .root {
-    padding-block: var(--space-16) var(--space-24);
-  }
-
+@media (min-width: 640px) {
   .actions {
     width: auto;
     flex-direction: row;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 900px) {
+  .root {
+    --pw: min(25vw, 330px);
+
+    padding-top: var(--space-16);
+  }
+
   .inner {
-    grid-template-columns: 1.1fr 0.9fr;
-    gap: var(--space-8);
+    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .copy {
+    padding-bottom: var(--space-16);
+  }
+
+  .title {
+    max-width: 560px;
+    font-size: clamp(3.5rem, 6.4vw, 6rem);
   }
 }

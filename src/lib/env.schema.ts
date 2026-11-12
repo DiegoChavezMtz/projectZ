@@ -26,6 +26,9 @@ export const serverEnvSchema = z.object({
   // true cuando Captcha protection de Supabase está ON: el token de Turnstile lo valida Supabase (es de un solo uso).
   SUPABASE_CAPTCHA_ENABLED: boolString.optional(),
   // Protege POST /api/internal/deadlines (plazos y cola de correos de cumplimiento). Sin él, el endpoint responde 503.
+  // Captura de errores (S10-02): endpoint HTTP que recibe un POST JSON por error. Sin él, los errores solo quedan en logs.
+  ERROR_REPORT_URL: z.url().optional(),
+  ERROR_REPORT_TOKEN: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(32, 'debe tener al menos 32 caracteres').optional(),
 });
 

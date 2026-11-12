@@ -43,6 +43,6 @@
 }
 
 .body a {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   text-decoration: underline;
 }

@@ -14,11 +14,11 @@ export function SectionHeader({ id, title, subtitle, eyebrow }: Props) {
   return (
     <header className={styles.root}>
       {eyebrow ? <Badge tone="accent">{eyebrow}</Badge> : null}
-      <Heading level={2} id={id}>
+      <Heading level={2} size="display" id={id} className={styles.title}>
         {title}
       </Heading>
       {subtitle ? (
-        <Text tone="muted" size="lg">
+        <Text tone="muted" size="lg" className={styles.subtitle}>
           {subtitle}
         </Text>
       ) : null}

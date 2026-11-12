@@ -1,8 +1,8 @@
-import { sanitizeNextPath } from './nextPath';
+import { DEFAULT_APP_PATH, sanitizeNextPath } from './nextPath';
 
 // Reglas de redirección de docs/spec/auth.md: sesión, rutas protegidas y términos aceptados.
 // El rol de vendedor lo verifica `requireSeller()` en el servidor (necesita consultar la base).
-const PROTECTED_PREFIXES = ['/account', '/dashboard', '/onboarding', '/orders'];
+const PROTECTED_PREFIXES = ['/account', '/app', '/dashboard', '/onboarding', '/orders'];
 const GUEST_ONLY_PATHS = ['/login', '/signup'];
 const TERMS_PATH = '/onboarding/terms';
 /** Con términos pendientes se puede leer lo legal y cerrar sesión; el resto lleva a aceptarlos. */
@@ -15,7 +15,9 @@ export type RouteDecision = { action: 'next' } | { action: 'redirect'; to: strin
 
 export const termsRedirectTo = (next: string): string => {
   const safe = sanitizeNextPath(next);
-  return safe === '/' ? TERMS_PATH : `${TERMS_PATH}?next=${encodeURIComponent(safe)}`;
+  return safe === DEFAULT_APP_PATH || safe === '/'
+    ? TERMS_PATH
+    : `${TERMS_PATH}?next=${encodeURIComponent(safe)}`;
 };
 
 /** Función pura: decide qué hacer con una petición según ruta, sesión y términos. */

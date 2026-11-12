@@ -1,1 +1,0 @@
-export { HeroPhone } from './HeroPhone';

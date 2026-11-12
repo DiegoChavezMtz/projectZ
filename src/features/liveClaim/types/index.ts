@@ -1,3 +1,4 @@
+import type { BadgeData } from '@/types/reputation';
 import type {
   ClaimItem,
   ClaimSession,
@@ -33,6 +34,8 @@ export type LiveSeller = {
   shopName: string;
   handle: string | null;
   city: string | null;
+  /** Insignia de reputación, cargada junto al vendedor (una consulta por pantalla). */
+  badge: BadgeData | null;
 };
 
 /** Tarjeta de `/live`. */

@@ -16,6 +16,7 @@ import type { DeliveryReminderData } from './templates/deliveryReminder';
 import type { AccumulateReminderData } from './templates/accumulateReminder';
 import type { AccumulateNoticeData } from './templates/accumulateNotice';
 import type { AccumulateReleasedData } from './templates/accumulateReleased';
+import type { RatingReminderData } from './templates/ratingReminder';
 
 /** Mapa plantilla → datos. */
 export type TemplateDataMap = {
@@ -37,6 +38,7 @@ export type TemplateDataMap = {
   accumulateReminder: AccumulateReminderData;
   accumulateNotice: AccumulateNoticeData;
   accumulateReleased: AccumulateReleasedData;
+  ratingReminder: RatingReminderData;
 };
 
 export type TemplateName = keyof TemplateDataMap;

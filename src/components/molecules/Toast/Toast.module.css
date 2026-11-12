@@ -22,24 +22,26 @@
   max-width: 24rem;
   margin-left: auto;
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-left-width: var(--space-1);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-overlay);
+  border-radius: var(--radius-lg);
+  background: var(--zl-color-ink);
   box-shadow: var(--shadow-md);
+  color: var(--zl-color-ivory);
   pointer-events: auto;
 }
 
+/* Éxito en jade, error en rosa; ambos con texto de tinta (10.2:1 y 5.6:1) */
 .info {
-  border-left-color: var(--color-info);
+  background: var(--zl-color-ink);
 }
 
 .success {
-  border-left-color: var(--color-success);
+  background: var(--zl-color-jade);
+  color: var(--zl-color-ink);
 }
 
 .danger {
-  border-left-color: var(--color-danger);
+  background: var(--zl-color-pink);
+  color: var(--zl-color-ink);
 }
 
 .message {
@@ -55,9 +57,5 @@
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--color-text-muted);
-}
-
-.dismiss:hover {
-  color: var(--color-text);
+  color: inherit;
 }

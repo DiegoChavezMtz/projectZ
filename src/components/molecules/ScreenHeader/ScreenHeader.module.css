@@ -1,0 +1,116 @@
+.root {
+  --pw: 112px;
+  --ov: 70px;
+
+  position: relative;
+  z-index: 1;
+  padding-bottom: 28px;
+  border-radius: 0 0 28px 28px;
+}
+
+.contained {
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  border-radius: var(--radius-xl);
+}
+
+.contained .wrap {
+  width: 100%;
+}
+
+.wrap {
+  position: relative;
+  width: min(100% - 2 * var(--zl-gutter), var(--zl-max-width));
+  margin-inline: auto;
+}
+
+.text {
+  position: relative;
+  z-index: 2;
+}
+
+.kicker {
+  display: block;
+  margin: 6px 0 12px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 12.5vw, 4.4rem);
+  font-weight: 400;
+  line-height: var(--zl-leading-display);
+  overflow-wrap: break-word;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.lead {
+  max-width: 34ch;
+  margin-top: 14px;
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+/* Pila al lado: el texto deja espacio a la derecha */
+.side .text {
+  padding-right: calc(var(--pw) * 1.05);
+}
+
+.side .title {
+  font-size: clamp(2.4rem, 10.5vw, 3.5rem);
+}
+
+/* Titular enorme: la pila va debajo y cruza al cuerpo */
+.big {
+  --pw: min(60vw, 240px);
+  --ov: 130px;
+
+  padding-bottom: calc(var(--pw) * 1.4 + 16px - var(--ov) + 12px);
+}
+
+.big .title {
+  font-size: clamp(3.6rem, 19vw, 6.5rem);
+}
+
+.celebrate {
+  min-height: min(78dvh, 640px);
+}
+
+@media (min-width: 900px) {
+  .root {
+    --pw: 190px;
+    --ov: 100px;
+  }
+
+  .title {
+    font-size: clamp(4.5rem, 8vw, 7.5rem);
+  }
+
+  .side .text {
+    padding-right: calc(var(--pw) * 1.6);
+  }
+
+  .side .title {
+    font-size: clamp(4.5rem, 8vw, 7.5rem);
+  }
+
+  .big {
+    --pw: min(26vw, 300px);
+    --ov: 110px;
+  }
+
+  .big .title {
+    font-size: clamp(6rem, 10vw, 8.5rem);
+  }
+}

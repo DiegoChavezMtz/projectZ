@@ -1,9 +1,8 @@
-import clsx from 'clsx';
-import Link from 'next/link';
 import { Button } from '@/components/atoms/Button';
 import { Container } from '@/components/atoms/Container';
 import { Heading } from '@/components/atoms/Heading';
 import { Text } from '@/components/atoms/Text';
+import { FilterNav } from '@/components/molecules/FilterNav';
 import { Panel } from '@/components/molecules/Panel';
 import { getCategory } from '@/types/categories';
 import { formatDateTime } from '@/utils/dates';
@@ -40,18 +39,15 @@ export async function ClaimsListView({ status }: { status?: string }) {
         <Button href="/dashboard/claims/new">{c.newEvent}</Button>
       </header>
 
-      <nav aria-label={c.tabsLabel} className={styles.tabs}>
-        {FILTERS.map((value) => (
-          <Link
-            key={value}
-            href={value === 'all' ? '/dashboard/claims' : `/dashboard/claims?status=${value}`}
-            className={clsx(styles.tab, value === filter && styles.active)}
-            aria-current={value === filter ? 'page' : undefined}
-          >
-            {value === 'all' ? c.tabAll : claimEventsContent.status[value]}
-          </Link>
-        ))}
-      </nav>
+      <FilterNav
+        label={c.tabsLabel}
+        active={filter}
+        items={FILTERS.map((value) => ({
+          value,
+          label: value === 'all' ? c.tabAll : (claimEventsContent.status[value] ?? value),
+          href: value === 'all' ? '/dashboard/claims' : `/dashboard/claims?status=${value}`,
+        }))}
+      />
 
       {sessions.length === 0 ? (
         <Panel className={styles.empty}>

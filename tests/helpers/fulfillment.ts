@@ -32,6 +32,7 @@ export type OrderRow = {
   pay_due_at: string | null;
   closed_at: string | null;
   accumulate_until: string | null;
+  completed_at: string | null;
 };
 
 /** Evento terminado donde cada comprador gana `wins[i]` artículos. Devuelve las cuentas por comprador. */
@@ -141,3 +142,13 @@ export async function queuedCount(template: string, userIds: string[]) {
 }
 
 export const daysFromNow = (days: number) => new Date(Date.now() + days * 86_400_000);
+
+/** Lleva una cuenta hasta `completed_at`: cierre, pago aceptado, envío y recepción confirmada. */
+export async function completeOrder(seller: TestSeller, buyer: TestBuyer, order: OrderRow) {
+  const paid = await closeAndPay(seller, buyer, order);
+  const shipped = await rpc(seller.client, 'mark_shipped', { p_delivery_id: paid.delivery_id });
+  if (!shipped.ok) throw new Error(`mark_shipped: ${shipped.code}`);
+  const received = await rpc(buyer.client, 'confirm_delivery', { p_delivery_id: paid.delivery_id });
+  if (!received.ok) throw new Error(`confirm_delivery: ${received.code}`);
+  return orderById(order.id);
+}

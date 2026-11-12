@@ -18,6 +18,7 @@ const fulfillmentTemplates: TemplateName[] = [
   'accumulateReminder',
   'accumulateNotice',
   'accumulateReleased',
+  'ratingReminder',
 ];
 
 describe('plantillas de cumplimiento (S8-11)', () => {

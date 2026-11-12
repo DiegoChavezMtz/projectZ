@@ -1,0 +1,66 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  max-height: 60dvh;
+  margin-inline: auto;
+  touch-action: none;
+  background: var(--color-bg);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.outline polygon {
+  fill: var(--color-accent-soft);
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Objetivo táctil de 44 px; el punto visible es más pequeño y con borde propio para leerse sobre la foto. */
+.handle {
+  position: absolute;
+  width: var(--tap-target-min);
+  height: var(--tap-target-min);
+  padding: 0;
+  cursor: grab;
+  background: transparent;
+  border: 0;
+  transform: translate(-50%, -50%);
+}
+
+.handle::after {
+  position: absolute;
+  inset: 12px;
+  content: '';
+  background: var(--color-accent);
+  border: 3px solid var(--color-bg);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 1px var(--color-text);
+}
+
+.handle:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: -4px;
+  border-radius: var(--radius-full);
+}

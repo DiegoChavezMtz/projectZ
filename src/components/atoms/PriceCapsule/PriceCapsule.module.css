@@ -1,0 +1,20 @@
+.root {
+  display: inline-block;
+  flex: none;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.capsule {
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--ap-price-bg);
+  color: var(--zl-color-orange);
+}
+
+.plain {
+  color: var(--ap-plain-price);
+}

@@ -71,7 +71,7 @@ describe('OAuth', () => {
     expect(planOAuthCallback({ code: 'abc', next: 'https://evil.com' })).toEqual({
       kind: 'exchange',
       code: 'abc',
-      next: '/',
+      next: '/app',
     });
   });
 

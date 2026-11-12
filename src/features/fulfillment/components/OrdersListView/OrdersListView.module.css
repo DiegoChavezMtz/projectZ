@@ -51,7 +51,7 @@
   display: inline-flex;
   min-height: var(--tap-target-min);
   align-items: center;
-  color: var(--color-accent);
+  color: var(--color-accent-text);
   font-size: var(--font-size-sm);
   text-decoration: none;
 }
@@ -61,4 +61,10 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-3);
+}
+
+/* Subtítulo separado del título */
+.subtitle {
+  display: block;
+  margin-top: var(--space-3);
 }

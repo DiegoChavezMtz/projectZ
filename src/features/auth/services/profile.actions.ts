@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { emailService } from '@/services/email.service';
 import { AppError } from '@/utils/errors';
 import type { ActionState } from '../types';
-import { profileSchema, sellerSchema } from '../utils/auth.schemas';
+import { profileSchema, sellerSchema, shopProfileSchema } from '../utils/auth.schemas';
 import { AVATAR_MAX_UPLOAD_BYTES } from '../utils/avatar';
 import { failure, fieldErrors, text } from '../utils/formData';
 import { authService } from './auth.service';
@@ -48,6 +48,28 @@ export async function uploadAvatarAction(
   if (!(file instanceof File) || file.size > AVATAR_MAX_UPLOAD_BYTES) return failure('avatar_size');
   try {
     await profileService.setAvatar(user.id, file, profile.avatar_path);
+    refreshHeader();
+  } catch (error) {
+    return failure(errorCode(error));
+  }
+  return { status: 'success' };
+}
+
+/** Ajustes de la tienda: nombre, descripción y ciudad (el enlace no cambia). */
+export async function updateShopAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const { user } = await authService.requireSeller('/dashboard/settings');
+  const parsed = shopProfileSchema.safeParse({
+    shopName: text(formData, 'shopName'),
+    bio: text(formData, 'bio'),
+    city: text(formData, 'city'),
+  });
+  if (!parsed.success)
+    return failure('validation', { fieldErrors: fieldErrors(parsed.error.issues) });
+  try {
+    await profileService.updateSeller(user.id, parsed.data);
     refreshHeader();
   } catch (error) {
     return failure(errorCode(error));

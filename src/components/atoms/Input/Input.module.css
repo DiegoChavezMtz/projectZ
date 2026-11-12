@@ -18,7 +18,7 @@
 }
 
 .root:focus-visible {
-  border-color: var(--color-accent);
+  border-color: var(--color-text);
 }
 
 .root[aria-invalid='true'] {

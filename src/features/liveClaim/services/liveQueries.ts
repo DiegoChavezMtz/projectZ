@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { reputationBadgeService } from '@/services/reputation.service';
 import type { Database } from '@/types/database.types';
 import { AppError } from '@/utils/errors';
 import type { LiveListEntry, LiveSeller } from '../types';
@@ -11,9 +12,10 @@ export async function querySellers(
   sellerIds: string[],
 ): Promise<Map<string, LiveSeller>> {
   const ids = [...new Set(sellerIds)];
-  const [shops, profiles] = await Promise.all([
+  const [shops, profiles, badges] = await Promise.all([
     supabase.from('public_seller_profiles').select('user_id, shop_name, city').in('user_id', ids),
     supabase.from('public_profiles').select('id, handle, display_name').in('id', ids),
+    reputationBadgeService.forUsers(supabase, ids, { asRole: 'seller' }),
   ]);
   if (shops.error || profiles.error)
     throw new AppError(
@@ -30,6 +32,7 @@ export async function querySellers(
       shopName: shop?.shop_name ?? profile?.display_name ?? 'Vendedor',
       handle: profile?.handle ?? null,
       city: shop?.city ?? null,
+      badge: badges.get(id) ?? null,
     });
   }
   return result;

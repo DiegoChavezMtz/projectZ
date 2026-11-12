@@ -8,6 +8,8 @@ const v = claimEventsContent.validation;
 /** Máximo permitido por el entero de la BD (int4) con margen: $10,000,000.00. */
 export const MAX_PRICE_CENTS = 1_000_000_000;
 
+export const SELLER_NOTE_MAX = 80;
+
 const flag = z.preprocess(
   (value) => value === true || value === 'on' || value === 'true',
   z.boolean(),
@@ -37,6 +39,13 @@ export function buildItemFormSchema(category: CategoryDefinition) {
         }
         return cents;
       }),
+    /** Nota del vendedor (nombre, fecha…): texto del artículo, no parte de la foto. Vacío = sin nota. */
+    note: z
+      .string()
+      .trim()
+      .max(SELLER_NOTE_MAX, v.tooLong(SELLER_NOTE_MAX))
+      .transform((text) => (text === '' ? null : text))
+      .default(null),
     isPreview: flag,
     attributes: z.preprocess(stripBlanks, category.schema),
   });

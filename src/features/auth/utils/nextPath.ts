@@ -1,4 +1,9 @@
-const FALLBACK = '/';
+/**
+ * Destino por defecto tras iniciar sesión: `/app` decide según la persona (con tienda → `/dashboard`,
+ * sin tienda → `/orders`, «Mis cuentas»). Es también lo que vale cuando `next` falta o no es seguro.
+ */
+export const DEFAULT_APP_PATH = '/app';
+const FALLBACK = DEFAULT_APP_PATH;
 // Origen ficticio solo para resolver la ruta y comprobar que no se sale de él.
 const BASE = 'http://zlotify.invalid';
 

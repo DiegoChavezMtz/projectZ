@@ -1,9 +1,8 @@
-import clsx from 'clsx';
-import Link from 'next/link';
 import { connection } from 'next/server';
 import { Container } from '@/components/atoms/Container';
 import { Heading } from '@/components/atoms/Heading';
 import { Text } from '@/components/atoms/Text';
+import { FilterNav } from '@/components/molecules/FilterNav';
 import { Panel } from '@/components/molecules/Panel';
 import { formatDateTime } from '@/utils/dates';
 import { formatMXN } from '@/utils/money';
@@ -17,6 +16,7 @@ import { Countdown } from '../Countdown';
 import { CloseOrderForm, ProofReview, QuoteForm, ShipForm } from '../SellerActions';
 import { DeliveryStatusBadge, OrderStatusBadge } from '../StatusBadge';
 import { ToastProvider } from '@/context/ToastContext';
+import { CounterpartBadge } from '../CounterpartBadge';
 import styles from './SellerOrdersView.module.css';
 
 const c = fulfillmentContent;
@@ -40,6 +40,7 @@ function OrderCard({ view, tab }: { view: OrderView; tab: SellerTab }) {
         {s.order.buyer(view.counterpart)} · {c.common.items(view.items.length)} ·{' '}
         {tab === 'toClose' ? formatMXN(order.items_total_cents) : formatMXN(total)}
       </Text>
+      <CounterpartBadge badge={view.counterpartBadge} name={view.counterpart} />
       <details className={styles.items}>
         <summary>{c.buyer.detail.itemsTitle}</summary>
         <ul>
@@ -123,6 +124,7 @@ function DeliveryCard({ view, tab }: { view: DeliveryView; tab: SellerTab }) {
         {c.method[delivery.method]} · {s.delivery.orders(view.orders.length)} ·{' '}
         {view.orders.map((o) => o.sessionTitle).join(', ')}
       </Text>
+      <CounterpartBadge badge={view.counterpartBadge} name={view.counterpart} />
       {address ? (
         <Text size="sm" className={styles.address}>
           {s.delivery.address}: {address.recipient}, {address.street} {address.exterior}
@@ -210,19 +212,16 @@ export async function SellerOrdersView({ tab: rawTab }: { tab?: string }) {
           <Text tone="muted">{s.subtitle}</Text>
         </header>
 
-        <nav aria-label={s.tabsLabel} className={styles.tabs}>
-          {SELLER_TABS.map((value) => (
-            <Link
-              key={value}
-              href={value === 'toClose' ? '/dashboard/orders' : `/dashboard/orders?tab=${value}`}
-              className={clsx(styles.tab, value === tab && styles.active)}
-              aria-current={value === tab ? 'page' : undefined}
-            >
-              {s.tabs[value]}
-              <span className={styles.count}>{bucketSize(buckets[value])}</span>
-            </Link>
-          ))}
-        </nav>
+        <FilterNav
+          label={s.tabsLabel}
+          active={tab}
+          items={SELLER_TABS.map((value) => ({
+            value,
+            label: s.tabs[value],
+            count: bucketSize(buckets[value]),
+            href: value === 'toClose' ? '/dashboard/orders' : `/dashboard/orders?tab=${value}`,
+          }))}
+        />
 
         {bucketSize(current) === 0 ? (
           <Panel>

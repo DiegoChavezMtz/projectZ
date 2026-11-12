@@ -1,11 +1,10 @@
-.root {
-  padding-block: var(--space-12);
-  scroll-margin-top: var(--header-height);
-}
-
 .title {
   margin-bottom: var(--space-8);
-  text-align: center;
+  font-family: var(--font-display);
+  font-size: var(--zl-text-title);
+  font-weight: 400;
+  line-height: var(--zl-leading-display);
+  text-transform: uppercase;
 }
 
 .list {
@@ -15,8 +14,7 @@
 }
 
 .item {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
 
@@ -26,10 +24,10 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-heavy);
   list-style: none;
 }
 
@@ -39,8 +37,8 @@
 
 .chevron {
   flex-shrink: 0;
-  color: var(--color-accent);
-  transition: transform var(--duration-base) var(--ease-standard);
+  color: var(--color-accent-text);
+  transition: transform var(--zl-duration) var(--zl-ease);
 }
 
 .item[open] .chevron {
@@ -48,12 +46,6 @@
 }
 
 .answer {
-  padding: 0 var(--space-4) var(--space-4);
+  padding: 0 var(--space-5) var(--space-5);
   color: var(--color-text-muted);
-}
-
-@media (min-width: 768px) {
-  .root {
-    padding-block: var(--space-16);
-  }
 }

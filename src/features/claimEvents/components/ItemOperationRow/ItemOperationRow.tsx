@@ -14,6 +14,7 @@ import { itemImageUrl } from '@/utils/image';
 import { formatMXN } from '@/utils/money';
 import { liveConsoleContent } from '../../content/es-MX';
 import type { ConsoleEntry, ItemOperation, QueueRow } from '../../types';
+import { ReputationBadge } from '@/components/molecules/ReputationBadge';
 import { memberSinceLabel } from '../../utils/consoleOperations';
 import { ConfirmDialog } from '../ConfirmDialog';
 import styles from './ItemOperationRow.module.css';
@@ -61,10 +62,28 @@ type Props = {
 };
 
 function BuyerLine({ row, wins }: { row: QueueRow; wins?: number | null }) {
+  const name = row.buyerName || c.unknownBuyer;
+  if (row.badge) {
+    return (
+      <span className={styles.buyer}>
+        <strong>{name}</strong>{' '}
+        <ReputationBadge
+          compact
+          handle={row.badge.handle}
+          name={name}
+          winsCount={row.badge.winsCount}
+          isSeller={false}
+          rating={row.badge.rating}
+          paidOnTimeRate={row.badge.paidOnTimeRate}
+          isNew={row.badge.isNew}
+        />
+      </span>
+    );
+  }
   const since = memberSinceLabel(row.memberSince);
   return (
     <span className={styles.buyer}>
-      <strong>{row.buyerName || c.unknownBuyer}</strong>
+      <strong>{name}</strong>
       {wins !== undefined ? <span> · {wins ? c.wins(wins) : c.newBuyer}</span> : null}
       {since ? <span> · {c.member(since)}</span> : null}
     </span>

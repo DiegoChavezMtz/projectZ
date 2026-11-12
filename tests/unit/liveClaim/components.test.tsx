@@ -162,7 +162,13 @@ describe('EndedView', () => {
     const { container } = render(
       <EndedView
         session={session({ status: 'ended' })}
-        seller={{ id: 'seller-1', shopName: 'Cartas del Centro', handle: null, city: 'CDMX' }}
+        seller={{
+          id: 'seller-1',
+          shopName: 'Cartas del Centro',
+          handle: null,
+          city: 'CDMX',
+          badge: null,
+        }}
         items={items}
         category={category}
       />,
@@ -223,7 +229,10 @@ describe('ItemTile', () => {
       leader_wins_count: 3,
     });
     expect(screen.getByText('Reclamada')).toBeInTheDocument();
-    expect(screen.getByText(/Por Luis · 3 claims ganados/)).toBeInTheDocument();
+    expect(screen.getByText(/Por Luis/)).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: 'Ver perfil de Luis' });
+    expect(link).toHaveAttribute('href', '/u/luis');
+    expect(link).toHaveTextContent('3 claims ganados');
   });
 
   it('anuncia en una región de estado la posición del usuario', () => {

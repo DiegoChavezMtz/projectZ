@@ -119,3 +119,9 @@
     transition: none;
   }
 }
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

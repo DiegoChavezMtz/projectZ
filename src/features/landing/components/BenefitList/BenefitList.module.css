@@ -1,7 +1,6 @@
 .list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
+  display: grid;
+  gap: var(--space-4);
   padding: 0;
   list-style: none;
 }
@@ -9,6 +8,9 @@
 .item {
   display: flex;
   gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
 .icon {
@@ -18,12 +20,17 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
-  color: var(--color-accent);
+  border-radius: var(--radius-full);
+  background: var(--zl-color-ink);
+  color: var(--zl-color-orange);
 }
 
 .title {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-heavy);
+}
+
+@media (min-width: 768px) {
+  .list {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

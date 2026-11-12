@@ -4,6 +4,7 @@ import { Button } from '@/components/atoms/Button';
 import { Container } from '@/components/atoms/Container';
 import { Heading } from '@/components/atoms/Heading';
 import { Panel } from '@/components/molecules/Panel';
+import { ReputationBadge } from '@/components/molecules/ReputationBadge';
 import { Skeleton } from '@/components/molecules/Skeleton';
 import { Text } from '@/components/atoms/Text';
 import { getCategory } from '@/types/categories';
@@ -56,6 +57,17 @@ async function LiveList() {
                   {seller.shopName}
                   {seller.city ? ` · ${seller.city}` : ''}
                 </Text>
+                {seller.badge ? (
+                  <ReputationBadge
+                    compact
+                    handle={seller.badge.handle}
+                    name={seller.shopName}
+                    winsCount={seller.badge.winsCount}
+                    isSeller
+                    rating={seller.badge.rating}
+                    isNew={seller.badge.isNew}
+                  />
+                ) : null}
                 <Text size="sm">
                   {c.available(
                     availableCount,

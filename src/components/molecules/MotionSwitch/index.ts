@@ -1,0 +1,1 @@
+export { MotionSwitch } from './MotionSwitch';

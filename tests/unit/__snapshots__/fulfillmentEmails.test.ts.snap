@@ -190,6 +190,21 @@ Aviso de privacidad: https://zlotify.test/privacidad",
 }
 `;
 
+exports[`plantillas de cumplimiento (S8-11) > ratingReminder: snapshot de asunto y texto 1`] = `
+{
+  "subject": "Cuéntanos cómo te fue",
+  "text": "¡Hola, Luis!
+
+Tu cuenta de «Claim de viernes» con Cartas del Centro ya se completó. Puedes calificarla hasta el 20 de noviembre de 2026; ayuda a que la comunidad compre y venda con confianza. Una vez enviada, la calificación no se edita.
+
+Calificar: https://zlotify.test/orders
+
+--
+Si no solicitaste esto, ignora este correo.
+Aviso de privacidad: https://zlotify.test/privacidad",
+}
+`;
+
 exports[`plantillas de cumplimiento (S8-11) > unpaidNotice: snapshot de asunto y texto 1`] = `
 {
   "subject": "Tu cuenta venció sin pago",

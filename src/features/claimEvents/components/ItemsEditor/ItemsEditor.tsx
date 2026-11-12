@@ -86,9 +86,14 @@ export function ItemsEditor({ sessionId, categoryId, items, editable }: Props) {
           {c.title} ({list.length})
         </Heading>
         {editable ? (
-          <Button type="button" onClick={() => setEditing({ kind: 'new' })}>
-            {c.add(singular)}
-          </Button>
+          <div className={styles.headerActions}>
+            <Button href={`/dashboard/claims/${sessionId}/scanner`} variant="secondary">
+              {c.openScanner}
+            </Button>
+            <Button type="button" onClick={() => setEditing({ kind: 'new' })}>
+              {c.add(singular)}
+            </Button>
+          </div>
         ) : null}
       </div>
 
@@ -148,6 +153,11 @@ export function ItemsEditor({ sessionId, categoryId, items, editable }: Props) {
                   <Text size="sm" tone="muted">
                     {formatMXN(item.price_cents)}
                   </Text>
+                  {item.seller_note ? (
+                    <Text size="sm" tone="muted">
+                      {item.seller_note}
+                    </Text>
+                  ) : null}
                   <div className={styles.badges}>
                     {!complete ? <Badge tone="warning">{c.incomplete}</Badge> : null}
                     {item.is_preview ? <Badge tone="accent">{c.preview_badge}</Badge> : null}

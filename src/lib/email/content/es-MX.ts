@@ -131,4 +131,13 @@ export const emailContent = {
         `El guardadito de ${buyer} se liberó porque ${reason}. Las piezas volvieron a ti. Cualquier reembolso o acuerdo es directo con el comprador.`,
     },
   },
+  reputation: {
+    ratingReminder: {
+      subject: 'Cuéntanos cómo te fue',
+      body: (counterpart: string, reference: string, until: string) =>
+        `Tu cuenta de «${reference}» con ${counterpart} ya se completó. Puedes calificarla hasta el ${until}; ayuda a que la comunidad compre y venda con confianza. Una vez enviada, la calificación no se edita.`,
+      ctaBuyer: 'Calificar',
+      ctaSeller: 'Calificar',
+    },
+  },
 } as const;

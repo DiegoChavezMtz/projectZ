@@ -17,3 +17,7 @@ export function fitWithin(
 /** URL pública de una imagen guardada en el bucket `item-images` (la usan el editor y el visor). */
 export const itemImageUrl = (supabaseUrl: string, path: string | null | undefined) =>
   path ? `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/item-images/${path}` : null;
+
+/** URL pública de un avatar guardado en el bucket `avatars` (`<user_id>/<archivo>.webp`). */
+export const avatarUrl = (supabaseUrl: string, path: string | null | undefined) =>
+  path ? `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/avatars/${path}` : null;

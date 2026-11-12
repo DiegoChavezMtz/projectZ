@@ -21,10 +21,10 @@ describe('sanitizeNextPath', () => {
     'evil.com',
     '',
     '/ok\tnope',
-  ])('rechaza %j', (value) => expect(sanitizeNextPath(value)).toBe('/'));
+  ])('rechaza %j', (value) => expect(sanitizeNextPath(value)).toBe('/app'));
   it('rechaza no-strings', () => {
-    expect(sanitizeNextPath(undefined)).toBe('/');
-    expect(sanitizeNextPath(['/a'])).toBe('/');
+    expect(sanitizeNextPath(undefined)).toBe('/app');
+    expect(sanitizeNextPath(['/a'])).toBe('/app');
   });
   it('acepta rutas internas con query y hash', () => {
     expect(sanitizeNextPath('/account')).toBe('/account');

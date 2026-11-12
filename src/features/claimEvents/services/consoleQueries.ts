@@ -1,3 +1,4 @@
+import { reputationBadgeService } from '@/services/reputation.service';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 import { AppError } from '@/utils/errors';
@@ -21,18 +22,25 @@ export async function queryEntries(supabase: Client, sessionId: string): Promise
   return data;
 }
 
-/** Nombre público y antigüedad de cuenta de los compradores. */
+/** Nombre público, antigüedad e insignia de reputación de los compradores (dos consultas por tanda). */
 export async function queryBuyers(supabase: Client, buyerIds: string[]): Promise<BuyerInfo[]> {
   const ids = [...new Set(buyerIds)];
   if (ids.length === 0) return [];
-  const { data, error } = await supabase
-    .from('public_profiles')
-    .select('id, handle, display_name, created_at')
-    .in('id', ids);
+  const [{ data, error }, badges] = await Promise.all([
+    supabase.from('public_profiles').select('id, handle, display_name, created_at').in('id', ids),
+    reputationBadgeService.forUsers(supabase, ids, { asRole: 'buyer' }),
+  ]);
   if (error) throw new AppError('load_failed', 'No se pudo cargar a los compradores', error);
   return data.flatMap((row) =>
     row.id && row.created_at
-      ? [{ id: row.id, name: row.display_name ?? row.handle ?? '', memberSince: row.created_at }]
+      ? [
+          {
+            id: row.id,
+            name: row.display_name ?? row.handle ?? '',
+            memberSince: row.created_at,
+            badge: badges.get(row.id) ?? null,
+          },
+        ]
       : [],
   );
 }

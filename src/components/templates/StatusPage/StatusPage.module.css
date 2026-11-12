@@ -16,17 +16,20 @@
 }
 
 .code {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
+  font-family: var(--font-mono);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-wide);
 }
 
 .title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-  line-height: var(--line-height-tight);
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 10vw, 3.5rem);
+  font-weight: 400;
+  line-height: var(--zl-leading-display);
+  text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .description {
@@ -40,11 +43,11 @@
   justify-content: center;
   margin-top: var(--space-2);
   padding: 0 var(--space-6);
-  border: 0;
-  border-radius: var(--radius-md);
+  border: var(--zl-border-w) solid var(--ap-pill-border);
+  border-radius: var(--radius-full);
   background: var(--color-accent);
   color: var(--color-on-accent);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-heavy);
   text-decoration: none;
   transition: background var(--duration-fast) var(--ease-standard);
 }

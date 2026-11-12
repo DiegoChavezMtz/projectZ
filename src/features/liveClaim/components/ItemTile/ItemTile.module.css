@@ -1,19 +1,9 @@
 .root {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
   list-style: none;
   scroll-margin-top: calc(var(--header-height) + var(--space-4));
-  transition:
-    border-color var(--duration-base) var(--ease-standard),
-    opacity var(--duration-slow) var(--ease-standard);
-}
-
-.root:target {
-  border-color: var(--color-accent);
+  transition: opacity var(--zl-duration) var(--zl-ease);
 }
 
 .deferred {
@@ -22,34 +12,30 @@
 }
 
 .done {
-  opacity: 0.72;
+  opacity: 0.8;
 }
 
-.involved {
-  border-color: var(--color-accent);
-}
-
-.mine {
-  border-color: var(--color-success);
-  background: var(--color-surface-raised);
+/* Tu relación con la pieza se anuncia con texto (`relation`); el contorno solo la refuerza. */
+.involved .media,
+.mine .media,
+.root:target .media {
+  border-radius: calc(var(--zl-photo-radius) + 4px);
+  outline: 3px solid var(--color-text);
+  outline-offset: 3px;
 }
 
 .media {
   position: relative;
 }
 
-.state {
-  position: absolute;
-  top: var(--space-2);
-  left: var(--space-2);
-  background: var(--color-bg);
-}
-
 .featured {
   position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
-  background: var(--color-bg);
+  z-index: 3;
+  top: var(--space-3);
+  right: var(--space-3);
+  border-color: var(--zl-color-ink);
+  background: var(--zl-color-ink);
+  color: var(--zl-color-ivory);
 }
 
 .body {
@@ -57,12 +43,12 @@
   flex: 1;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-3) 0 0;
 }
 
 .title {
   font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-heavy);
   line-height: var(--line-height-snug);
 }
 
@@ -73,10 +59,8 @@
 }
 
 .price {
-  color: var(--color-accent);
-  font-size: var(--font-size-lg);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-bold);
+  align-self: flex-start;
+  font-size: var(--font-size-md);
 }
 
 .leader {

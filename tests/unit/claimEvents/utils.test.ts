@@ -117,6 +117,7 @@ describe('itemFormSchema', () => {
     expect(parsed).toEqual({
       title: 'Charizard',
       price: 155050,
+      note: null,
       isPreview: true,
       attributes: { language: 'es', condition: 'NM', collector_number: '4/102' },
     });
@@ -138,6 +139,7 @@ describe('itemFormSchema', () => {
       schema: z.object({ size: z.enum(['S', 'M']) }),
       itemLabels: { singular: 'pieza', plural: 'piezas' },
       imageAspect: { width: 1, height: 1 },
+      draftAttributes: { size: 'M' },
       fields: [],
     };
     categories.fake = fake;
@@ -258,5 +260,26 @@ describe('S5-13: cierre programado y vigencia del guardadito', () => {
     expect(sameMinute(null, '2026-11-08T14:00:00.000Z')).toBe(false);
     expect(sameMinute('2026-11-08T14:00:00.000Z', '2026-11-08T14:00:41.250+00:00')).toBe(true);
     expect(sameMinute('2026-11-08T14:00:00.000Z', '2026-11-08T14:01:00.000Z')).toBe(false);
+  });
+});
+
+describe('nota del vendedor (seller_note)', () => {
+  const base = {
+    title: 'Mew',
+    price: '420',
+    isPreview: false,
+    attributes: { language: 'es', condition: 'NM' },
+  };
+  it('es opcional: vacía equivale a sin nota', () => {
+    const ok = itemFormSchema('tcg').safeParse({ ...base, note: '  ' });
+    expect(ok.success && ok.data.note).toBeNull();
+    const missing = itemFormSchema('tcg').safeParse(base);
+    expect(missing.success && missing.data.note).toBeNull();
+  });
+  it('se recorta y admite hasta 80 caracteres', () => {
+    const ok = itemFormSchema('tcg').safeParse({ ...base, note: '  Ana, 2 nov  ' });
+    expect(ok.success && ok.data.note).toBe('Ana, 2 nov');
+    expect(itemFormSchema('tcg').safeParse({ ...base, note: 'x'.repeat(80) }).success).toBe(true);
+    expect(itemFormSchema('tcg').safeParse({ ...base, note: 'x'.repeat(81) }).success).toBe(false);
   });
 });

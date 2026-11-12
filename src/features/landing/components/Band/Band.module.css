@@ -1,0 +1,54 @@
+.root {
+  --band-pad: 56px;
+
+  position: relative;
+  padding-block: var(--band-pad);
+  background: var(--color-bg);
+  color: var(--color-text);
+  overflow-x: clip;
+  overflow-y: visible;
+  scroll-margin-top: var(--header-height);
+}
+
+@media (min-width: 900px) {
+  .root {
+    --band-pad: 96px;
+  }
+}
+
+.dark {
+  --ap-pill-border: var(--zl-color-orange);
+}
+
+/* Pilas: tamaño de la pieza de enfrente (--pw) y cuánto cruza el borde (--ov) */
+.emitsStack,
+.emitsSolo {
+  --pw: 118px;
+  --ov: 110px;
+
+  padding-bottom: calc(var(--band-pad) + var(--pw) * 1.4 + 16px - var(--ov) + 12px);
+}
+
+.receives-stack,
+.receives-solo {
+  --ov: 110px;
+
+  padding-top: max(var(--band-pad), calc(var(--ov) + 28px));
+}
+
+.receives-hero {
+  padding-top: max(var(--band-pad), calc(var(--ov-hero) + 28px));
+}
+
+@media (min-width: 900px) {
+  .emitsStack,
+  .emitsSolo {
+    --pw: 190px;
+    --ov: 190px;
+  }
+
+  .receives-stack,
+  .receives-solo {
+    --ov: 190px;
+  }
+}
