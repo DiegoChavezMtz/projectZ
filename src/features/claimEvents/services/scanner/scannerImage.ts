@@ -10,7 +10,8 @@ import {
 } from '../../utils/scanner/geometry';
 import type { Aspect, Quad, RawImage } from '../../utils/scanner/types';
 import { warpPerspective } from '../../utils/scanner/warp';
-import { ITEM_IMAGE_MAX_BYTES, ITEM_IMAGE_MAX_SIDE, WEBP_QUALITIES } from '../../utils/image';
+import { ITEM_IMAGE_MAX_SIDE } from '../../utils/image';
+import { encodeWithFallback } from '../../utils/scanner/encode';
 
 // Operaciones de imagen del modo escáner. Corren igual dentro de un Web Worker (OffscreenCanvas) o, como
 // degradación, en el hilo principal (canvas del DOM). Nada de esto se importa fuera de la ruta del escáner.
@@ -35,6 +36,8 @@ export type ProcessOutput = {
   /** Falso si no hubo detección confiable y se usó el recorte centrado. */
   detected: boolean;
   confidence: number;
+  /** Falso si el navegador no codifica WebP y la salida es JPEG. */
+  webpSupported: boolean;
   /** Proporción ancho/alto de la foto original (para dibujar el ajuste manual sin deformar). */
   sourceAspect: number;
   /** Lado mayor (px de la foto original) de la región recortada: lo que la fuente realmente dio. */
@@ -52,8 +55,12 @@ export type FrameDetection = {
   confidence: number;
 };
 
+/** Error del pipeline: `code` estable para mapear a un mensaje; `detail` es la causa técnica (para soporte). */
 export class ScannerImageError extends Error {
-  constructor(readonly code: string) {
+  constructor(
+    readonly code: string,
+    readonly detail?: string,
+  ) {
     super(code);
   }
 }
@@ -89,17 +96,20 @@ function rasterize(bitmap: ImageBitmap, maxSide: number): RawImage {
   return { width, height, data };
 }
 
-async function encodeWebp(canvas: AnyCanvas): Promise<Blob> {
-  for (const quality of WEBP_QUALITIES) {
-    const blob =
-      'convertToBlob' in canvas
-        ? await canvas.convertToBlob({ type: 'image/webp', quality })
-        : await new Promise<Blob | null>((resolve) =>
-            canvas.toBlob(resolve, 'image/webp', quality),
-          );
-    if (blob && blob.type === 'image/webp' && blob.size <= ITEM_IMAGE_MAX_BYTES) return blob;
-  }
-  throw new ScannerImageError('encode_failed');
+/** WebP si el navegador lo codifica; si no, JPEG (ver `encodeWithFallback`). */
+async function encodeImage(canvas: AnyCanvas): Promise<{ blob: Blob; webpSupported: boolean }> {
+  const result = await encodeWithFallback(async (type, quality) =>
+    'convertToBlob' in canvas
+      ? canvas.convertToBlob({ type, quality })
+      : new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality)),
+  );
+  if (result.ok) return { blob: result.blob, webpSupported: result.webpSupported };
+  throw new ScannerImageError(
+    'encode_failed',
+    result.reason === 'too_large'
+      ? 'La imagen recortada no cabe en 5 MB ni con la calidad mínima'
+      : `El navegador no entregó WebP ni JPEG (WebP ${result.webpSupported ? 'sí' : 'no'} soportado)`,
+  );
 }
 
 /** Detecta (o usa las esquinas dadas), corrige la perspectiva, recorta y convierte a WebP. */
@@ -113,9 +123,15 @@ export async function processBitmap(
   let detected = Boolean(options.corners);
 
   if (!normalized) {
-    const small = rasterize(bitmap, DETECT_MAX_SIDE);
-    const found = detectQuad(small);
-    if (found && found.confidence >= MIN_CONFIDENCE) {
+    let small: RawImage | null = null;
+    let found: ReturnType<typeof detectQuad> = null;
+    try {
+      small = rasterize(bitmap, DETECT_MAX_SIDE);
+      found = detectQuad(small);
+    } catch {
+      // Sin detección no hay falla: se cae al recorte centrado y se abre el ajuste manual.
+    }
+    if (small && found && found.confidence >= MIN_CONFIDENCE) {
       normalized = normalizeQuad(found.corners, small.width, small.height);
       confidence = found.confidence;
       detected = true;
@@ -146,8 +162,11 @@ export async function processBitmap(
     options.aspect,
     Math.max(1, Math.min(maxSide, Math.round(cropLongSide))),
   );
-  const warped = warpPerspective(sample, quad, width, height);
-  if (!warped) throw new ScannerImageError('warp_failed');
+  // Esquinas degeneradas (p. ej. ajuste manual con puntos encimados): se usa el recorte centrado en lugar de fallar.
+  const warped =
+    warpPerspective(sample, quad, width, height) ??
+    warpPerspective(sample, centeredCropQuad(sample.width, sample.height, options.aspect), width, height);
+  if (!warped) throw new ScannerImageError('warp_failed', 'No se pudo calcular la perspectiva');
 
   const canvas = createCanvas(width, height);
   context2d(canvas).putImageData(
@@ -155,12 +174,13 @@ export async function processBitmap(
     0,
     0,
   );
-  const blob = await encodeWebp(canvas);
+  const { blob, webpSupported } = await encodeImage(canvas);
   return {
     blob,
     corners: normalized,
     detected,
     confidence,
+    webpSupported,
     sourceAspect: bitmap.width / bitmap.height,
     cropLongSide: Math.round(cropLongSide),
     lowResolution: cropLongSide < MIN_CROP_LONG_SIDE,

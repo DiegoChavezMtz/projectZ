@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { createClient } from '@/lib/supabase/server';
 import type { ClaimItem } from '@/types/claims';
 import { AppError } from '@/utils/errors';
-import { ITEM_IMAGE_MAX_BYTES, itemImagePath } from '../utils/image';
+import { ITEM_IMAGE_MAX_BYTES, isItemImageOutputType, itemImagePath } from '../utils/image';
 import { unwrapRpc, type RpcResult } from './claimSession.service';
 
 export type ItemInput = {
@@ -32,32 +32,32 @@ async function nextPosition(sessionId: string): Promise<number> {
 
 export const claimItemService = {
   /** Artículo del evento cuya imagen vive en `path` (idempotencia de las subidas del modo escáner). */
-  async findByImagePath(sessionId: string, path: string): Promise<ClaimItem | null> {
+  async findByImagePath(sessionId: string, paths: string[]): Promise<ClaimItem | null> {
     const supabase = await createClient();
     const { data } = await supabase
       .from('claim_items')
       .select('*')
       .eq('session_id', sessionId)
-      .eq('image_path', path)
+      .in('image_path', paths)
       .maybeSingle();
     return data;
   },
 
-  /** Sube el WebP ya redimensionado a `{user_id}/{session_id}/{uuid}.webp` y devuelve la ruta. */
+  /** Sube la imagen ya redimensionada (WebP, o JPEG de respaldo) a `{user_id}/{session_id}/{uuid}.{ext}` y devuelve la ruta. */
   async uploadImage(
     userId: string,
     sessionId: string,
     file: File,
     imageId: string = randomUUID(),
   ): Promise<string> {
-    if (file.type !== 'image/webp') throw new AppError('image_type', 'Formato no permitido');
+    if (!isItemImageOutputType(file.type)) throw new AppError('image_type', 'Formato no permitido');
     if (file.size === 0 || file.size > ITEM_IMAGE_MAX_BYTES)
       throw new AppError('image_size', 'Imagen demasiado pesada');
     const supabase = await createClient();
-    const path = itemImagePath(userId, sessionId, imageId);
+    const path = itemImagePath(userId, sessionId, imageId, file.type);
     const { error } = await supabase.storage
       .from(BUCKET)
-      .upload(path, file, { contentType: 'image/webp', upsert: false });
+      .upload(path, file, { contentType: file.type, upsert: false });
     // Con un id fijo (modo escáner) un reintento puede encontrar el objeto ya subido: es el mismo archivo.
     if (error && !/already exists|duplicate/i.test(error.message))
       throw new AppError('image_failed', 'No se pudo subir la imagen', error);
@@ -173,7 +173,12 @@ export const claimItemService = {
 
     let imagePath: string | null = null;
     if (source.image_path?.startsWith(`${userId}/`)) {
-      imagePath = itemImagePath(userId, source.session_id, randomUUID());
+      imagePath = itemImagePath(
+        userId,
+        source.session_id,
+        randomUUID(),
+        source.image_path.endsWith('.jpg') ? 'image/jpeg' : 'image/webp',
+      );
       const { error } = await supabase.storage.from(BUCKET).copy(source.image_path, imagePath);
       if (error) throw new AppError('image_failed', 'No se pudo copiar la imagen', error);
     }

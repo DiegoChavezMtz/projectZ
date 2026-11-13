@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createScannerPipeline } from '@/features/claimEvents/services/scanner/scannerPipeline';
+import { PROCESS_TIMEOUT_MS, createScannerPipeline } from '@/features/claimEvents/services/scanner/scannerPipeline';
 
 const output = {
   blob: new Blob(['w'], { type: 'image/webp' }),
@@ -132,11 +132,43 @@ describe('pipeline del escáner', () => {
     expect(await createScannerPipeline().detect(bitmap())).toEqual(detection);
   });
 
+  it('un worker que no responde nunca no cuelga: tras el plazo se procesa en el hilo principal', async () => {
+    vi.useFakeTimers();
+    try {
+      class SilentWorker {
+        onmessage: ((e: MessageEvent) => void) | null = null;
+        onerror: (() => void) | null = null;
+        postMessage() {}
+        terminate = vi.fn();
+      }
+      vi.stubGlobal('Worker', SilentWorker);
+      vi.stubGlobal('OffscreenCanvas', class {});
+      vi.stubGlobal('createImageBitmap', vi.fn(async () => bitmap()));
+      processBitmap.mockResolvedValue(output);
+      const pending = createScannerPipeline().process(new Blob(['x']), { aspect: { width: 63, height: 88 } });
+      await vi.advanceTimersByTimeAsync(PROCESS_TIMEOUT_MS + 10);
+      await expect(pending).resolves.toMatchObject({ degraded: true });
+      expect(processBitmap).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('una foto que no se puede decodificar es un error claro', async () => {
     vi.stubGlobal('Worker', undefined);
     vi.stubGlobal(
       'createImageBitmap',
       vi.fn(async () => Promise.reject(new Error('bad'))),
+    );
+    vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:x', revokeObjectURL: () => undefined });
+    vi.stubGlobal(
+      'Image',
+      class {
+        onerror: (() => void) | null = null;
+        set src(_: string) {
+          queueMicrotask(() => this.onerror?.());
+        }
+      },
     );
     await expect(
       createScannerPipeline().process(new Blob(['x']), { aspect: { width: 1, height: 1 } }),

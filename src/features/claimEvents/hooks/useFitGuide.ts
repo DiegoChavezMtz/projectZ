@@ -60,6 +60,8 @@ export function useFitGuide({ videoRef, viewportRef, guideRef, detect, active }:
         const previous = last.current;
         last.current = { state: next, count: previous.state === next ? previous.count + 1 : 1 };
         if (last.current.count >= STABLE_SAMPLES) setState(next);
+      } catch {
+        // La guía es solo una ayuda: si un cuadro no se puede analizar, se omite.
       } finally {
         running = false;
       }

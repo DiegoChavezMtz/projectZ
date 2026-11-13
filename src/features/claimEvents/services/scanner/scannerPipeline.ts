@@ -6,6 +6,7 @@ import {
   type ProcessOptions,
   type ProcessOutput,
 } from './scannerImage';
+import { decodeImage } from './decodeImage';
 import type { WorkerRequest, WorkerResponse } from './scanner.worker';
 
 export type PipelineResult = ProcessOutput & {
@@ -27,6 +28,8 @@ export type ScannerPipeline = {
 };
 
 const abortError = () => new DOMException('Cancelado', 'AbortError');
+export const PROCESS_TIMEOUT_MS = 20_000;
+export const DETECT_TIMEOUT_MS = 4_000;
 const FATAL = ['decode_failed', 'encode_failed'];
 
 /**
@@ -57,7 +60,7 @@ export function createScannerPipeline(): ScannerPipeline {
         if (!entry) return;
         pending.delete(data.id);
         if (data.ok) entry.resolve(data);
-        else entry.reject(new ScannerImageError(data.code));
+        else entry.reject(new ScannerImageError(data.code, data.detail));
       };
       created.onerror = () => {
         workerBroken = true;
@@ -72,10 +75,28 @@ export function createScannerPipeline(): ScannerPipeline {
     return worker;
   };
 
-  const request = (target: Worker, message: (id: number) => WorkerRequest) =>
+  // Un worker que ni responde ni falla (módulo que no cargó, p. ej. en un Safari viejo) no debe colgar la captura:
+  // pasado el plazo se descarta el worker y el trabajo sigue en el hilo principal.
+  const request = (target: Worker, message: (id: number) => WorkerRequest, timeoutMs: number) =>
     new Promise<WorkerResponse & { ok: true }>((resolve, reject) => {
       const id = (sequence += 1);
-      pending.set(id, { resolve, reject });
+      const timer = setTimeout(() => {
+        if (!pending.delete(id)) return;
+        workerBroken = true;
+        worker?.terminate();
+        worker = null;
+        reject(new ScannerImageError('worker_failed', 'El worker no respondió a tiempo'));
+      }, timeoutMs);
+      pending.set(id, {
+        resolve: (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        reject: (error) => {
+          clearTimeout(timer);
+          reject(error);
+        },
+      });
       const built = message(id);
       target.postMessage(built, [built.bitmap]);
     });
@@ -84,12 +105,7 @@ export function createScannerPipeline(): ScannerPipeline {
     async process(source, options, signal) {
       if (signal?.aborted) throw abortError();
       const started = performance.now();
-      let bitmap: ImageBitmap;
-      try {
-        bitmap = await createImageBitmap(source);
-      } catch {
-        throw new ScannerImageError('decode_failed');
-      }
+      const bitmap = await decodeImage(source);
       if (signal?.aborted) {
         bitmap.close();
         throw abortError();
@@ -102,12 +118,11 @@ export function createScannerPipeline(): ScannerPipeline {
         // El worker consume (transfiere) el bitmap: se conserva una copia solo para el posible respaldo.
         const backup = await createImageBitmap(bitmap);
         try {
-          const response = await request(target, (id) => ({
-            id,
-            kind: 'process',
-            bitmap,
-            options,
-          }));
+          const response = await request(
+            target,
+            (id) => ({ id, kind: 'process', bitmap, options }),
+            PROCESS_TIMEOUT_MS,
+          );
           if (response.kind !== 'process') throw new ScannerImageError('worker_failed');
           output = response;
           backup.close();
@@ -119,6 +134,11 @@ export function createScannerPipeline(): ScannerPipeline {
           degraded = true;
           try {
             output = await processBitmap(backup, options);
+          } catch (fallbackError) {
+            // Se conserva la causa original del worker si el respaldo también falla sin detalle propio.
+            if (fallbackError instanceof ScannerImageError && !fallbackError.detail && error instanceof ScannerImageError)
+              throw new ScannerImageError(fallbackError.code, error.detail);
+            throw fallbackError;
           } finally {
             backup.close();
           }
@@ -139,7 +159,11 @@ export function createScannerPipeline(): ScannerPipeline {
       const target = ensureWorker();
       if (target) {
         try {
-          const response = await request(target, (id) => ({ id, kind: 'detect', bitmap: frame }));
+          const response = await request(
+            target,
+            (id) => ({ id, kind: 'detect', bitmap: frame }),
+            DETECT_TIMEOUT_MS,
+          );
           return response.kind === 'detect' ? response.detection : null;
         } catch {
           return null; // la guía es una ayuda: si falla, simplemente no orienta

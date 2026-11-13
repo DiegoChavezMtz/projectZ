@@ -1,15 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { reportClientError } from '@/lib/observability/client';
+import { logger } from '@/lib/observability/logger';
 import type { ClaimItem } from '@/types/claims';
 import type { CategoryDefinition } from '@/types/categories';
 import { createCaptureQueue, type CaptureQueue } from '../services/scanner/captureQueue';
-import { createIdbCaptureStore, createMemoryCaptureStore } from '../services/scanner/captureStore';
+import { createIdbCaptureStore, createResilientCaptureStore } from '../services/scanner/captureStore';
 import {
   createScannerPipeline,
   type PipelineResult,
   type ScannerPipeline,
 } from '../services/scanner/scannerPipeline';
+import { ScannerImageError } from '../services/scanner/scannerImage';
 import { uploadCapture } from '../services/scanner/uploader.client';
 import { deleteItemAction } from '../services/claimEvents.actions';
 import { scannerContent } from '../content/scanner';
@@ -28,6 +31,32 @@ export type CurrentCapture = {
 };
 
 export type ReplaceTarget = { itemId: string; priceCents: number | null };
+
+/** Fallo visible: mensaje por causa y detalle técnico para soporte. */
+export type ScannerProblem = { message: string; code: string; detail: string };
+
+/** Mensaje por causa y registro del código real (antes todo se reducía a "No pudimos procesar la foto"). */
+export function describeProblem(error: unknown): ScannerProblem {
+  const code = error instanceof ScannerImageError ? error.code : 'unknown';
+  const detail =
+    error instanceof ScannerImageError
+      ? (error.detail ?? '')
+      : error instanceof Error
+        ? `${error.name}: ${error.message}`
+        : String(error);
+  const environment = [
+    typeof Worker !== 'undefined' ? 'worker' : 'sin worker',
+    typeof OffscreenCanvas !== 'undefined' ? 'offscreen' : 'sin offscreen',
+    typeof navigator !== 'undefined' ? navigator.userAgent : '',
+  ].join(' · ');
+  logger.error('scanner_process_failed', { code, detail, environment });
+  reportClientError(error);
+  return {
+    message: scannerContent.camera.problems[code] ?? scannerContent.camera.processFailed,
+    code,
+    detail: [detail, environment].filter(Boolean).join(' | '),
+  };
+}
 
 type Params = { sessionId: string; category: CategoryDefinition };
 
@@ -49,7 +78,7 @@ export function useScannerSession({ sessionId, category }: Params) {
   const [phase, setPhase] = useState<ScannerPhase>('camera');
   const [current, setCurrent] = useState<CurrentCapture | null>(null);
   const [replaceTarget, setReplaceTarget] = useState<ReplaceTarget | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ScannerProblem | null>(null);
   const urls = useRef<string[]>([]);
 
   const makeUrl = useCallback((blob: Blob) => {
@@ -64,12 +93,7 @@ export function useScannerSession({ sessionId, category }: Params) {
 
   // Cola y pipeline: se crean al abrir la vista (carga diferida) y se liberan al salir.
   useEffect(() => {
-    let store;
-    try {
-      store = createIdbCaptureStore();
-    } catch {
-      store = createMemoryCaptureStore();
-    }
+    const store = createResilientCaptureStore(() => createIdbCaptureStore());
     const queue = createCaptureQueue({ store, upload: uploadCapture });
     queueRef.current = queue;
     pipelineRef.current = createScannerPipeline();
@@ -126,8 +150,7 @@ export function useScannerSession({ sessionId, category }: Params) {
       .catch((e: unknown) => {
         busy.current = false;
         setPhase('camera');
-        if ((e as { name?: string })?.name !== 'AbortError')
-          setError(scannerContent.camera.processFailed);
+        if ((e as { name?: string })?.name !== 'AbortError') setError(describeProblem(e));
         pumpRef.current();
       });
   }, [aspect, makeUrl]);
@@ -174,9 +197,9 @@ export function useScannerSession({ sessionId, category }: Params) {
       dropUrl(value.resultUrl);
       setCurrent({ ...value, result, resultUrl: makeUrl(result.blob), corners: result.corners });
       setPhase('price');
-    } catch {
+    } catch (e) {
       setPhase('adjust');
-      setError(scannerContent.camera.processFailed);
+      setError(describeProblem(e));
     }
   }, [current, aspect, dropUrl, makeUrl]);
 

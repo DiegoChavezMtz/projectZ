@@ -53,7 +53,7 @@ async function sellerWithDraft(page: Page) {
   await waitForCaptcha(page).catch(() => undefined);
   await page.getByRole('button', { name: 'Entrar' }).click();
   await page.waitForURL('**/dashboard/claims');
-  await expect(page.getByRole('heading', { name: 'Tus claims' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Claims', level: 1 })).toBeVisible();
   return { user, sessionId: session!.id };
 }
 
@@ -227,5 +227,159 @@ test.describe('lote grande', () => {
       `60 piezas: total ${Math.round((Date.now() - started) / 1000)} s; por pieza, primeras 10: ${Math.round(firstTen)} ms, últimas 10: ${Math.round(lastTen)} ms`,
     );
     expect(lastTen).toBeLessThan(firstTen * 3 + 500); // sin degradación notable
+  });
+});
+
+// Safari/iOS no codifica WebP en canvas: `toBlob('image/webp')` devuelve PNG. Se emula en Chromium y se quita
+// OffscreenCanvas para que el pipeline corra en el hilo principal (el stub no llega al worker).
+test.describe('navegador sin codificación WebP (Safari)', () => {
+  test('una foto de internet se procesa y sube como JPEG', async ({ page }) => {
+    const { sessionId } = await sellerWithDraft(page);
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.toBlob;
+      HTMLCanvasElement.prototype.toBlob = function (cb, type, quality) {
+        return original.call(this, cb, type === 'image/webp' ? 'image/png' : type, quality);
+      };
+      // @ts-expect-error se emula un navegador sin OffscreenCanvas
+      delete window.OffscreenCanvas;
+      Object.defineProperty(navigator, 'mediaDevices', { value: undefined });
+    });
+    await page.goto(`/dashboard/claims/${sessionId}/scanner`);
+    await expect(page.getByTestId('scanner-file-input')).toBeAttached({ timeout: 30_000 });
+    await page.getByTestId('scanner-file-input').setInputFiles({ name: 'internet.png', mimeType: 'image/png', buffer: PNG });
+    const apply = page.getByRole('button', { name: 'Aplicar recorte' });
+    const done = page.getByRole('button', { name: 'Listo', exact: true });
+    await expect(done.or(apply).or(page.getByRole('alert'))).toBeVisible({ timeout: 30_000 });
+    const alerts = (await page.getByRole('alert').allTextContents()).filter((t) => t.trim() && !/Inicia sesión/.test(t));
+    expect(alerts).toEqual([]);
+    if (await apply.isVisible()) await apply.click();
+    await expect(done).toBeVisible({ timeout: 40_000 });
+    for (const ch of '75') await page.getByRole('button', { name: ch, exact: true }).click();
+    await done.click();
+    await expect(page.getByTestId('strip-item').filter({ hasText: 'lista' })).toHaveCount(1, { timeout: 60_000 });
+    const items = await itemsOf(sessionId);
+    expect(items).toHaveLength(1);
+    expect(items[0]!.image_path).toMatch(/\.jpg$/);
+    const response = await page.request.get(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/item-images/${items[0]!.image_path}`,
+    );
+    expect(response.headers()['content-type']).toBe('image/jpeg');
+  });
+});
+
+type Scene = 'grande' | 'pantalla' | 'bajo-contraste';
+
+/** Genera en el navegador una foto no ideal y la devuelve como bytes (JPEG o PNG). */
+async function makePhoto(page: Page, scene: Scene, mime: 'image/jpeg' | 'image/png') {
+  const base64 = await page.evaluate(
+    async ([kind, type]) => {
+      const big = kind === 'grande';
+      const width = big ? 4000 : 1200;
+      const height = big ? 3000 : 1600;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      if (kind === 'bajo-contraste') {
+        ctx.fillStyle = '#8a8a8a';
+        ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = '#929292'; // pieza casi del mismo gris que el fondo
+        ctx.fillRect(width * 0.2, height * 0.12, width * 0.6, height * 0.76);
+      } else {
+        const gradient = ctx.createLinearGradient(0, 0, width, height);
+        gradient.addColorStop(0, '#1b2a4a');
+        gradient.addColorStop(1, '#d9b36a');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        // Pieza con marco claro; en la "foto de pantalla" se agregan franjas de moiré y un brillo.
+        ctx.fillStyle = '#f2e6b8';
+        ctx.fillRect(width * 0.22, height * 0.1, width * 0.56, height * 0.8);
+        ctx.fillStyle = '#3a6ea5';
+        ctx.fillRect(width * 0.25, height * 0.14, width * 0.5, height * 0.72);
+        if (kind === 'pantalla') {
+          ctx.globalAlpha = 0.18;
+          for (let y = 0; y < height; y += 4) {
+            ctx.fillStyle = y % 8 === 0 ? '#fff' : '#000';
+            ctx.fillRect(0, y, width, 2);
+          }
+          ctx.globalAlpha = 1;
+        }
+        if (big) {
+          // Ruido para que el JPEG pese varios MB, como una foto real de celular.
+          const noise = ctx.getImageData(0, 0, width, 400);
+          for (let i = 0; i < noise.data.length; i += 4) {
+            const n = Math.random() * 60 - 30;
+            for (let c = 0; c < 3; c += 1) noise.data[i + c] = (noise.data[i + c] ?? 0) + n;
+          }
+          ctx.putImageData(noise, 0, 0);
+        }
+      }
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), type, 0.92));
+      const buffer = new Uint8Array(await blob.arrayBuffer());
+      let binary = '';
+      for (let i = 0; i < buffer.length; i += 0x8000) binary += String.fromCharCode(...buffer.subarray(i, i + 0x8000));
+      return btoa(binary);
+    },
+    [scene, mime] as const,
+  );
+  return Buffer.from(base64, 'base64');
+}
+
+/** Sube la foto por la alternativa de archivo y completa el flujo: no debe aparecer ningún error. */
+async function uploadThroughFileInput(page: Page, sessionId: string, name: string, mimeType: string, buffer: Buffer) {
+  await page.goto(`/dashboard/claims/${sessionId}/scanner`);
+  await expect(page.getByTestId('scanner-file-input')).toBeAttached({ timeout: 30_000 });
+  await page.getByTestId('scanner-file-input').setInputFiles({ name, mimeType, buffer });
+  const apply = page.getByRole('button', { name: 'Aplicar recorte' });
+  const done = page.getByRole('button', { name: 'Listo', exact: true });
+  await expect(done.or(apply).or(page.getByRole('alert').filter({ hasText: 'No pudimos' }))).toBeVisible({ timeout: 40_000 });
+  await expect(page.getByRole('alert').filter({ hasText: /No pudimos|Tu navegador/ })).toHaveCount(0);
+  if (await apply.isVisible()) await apply.click();
+  await expect(done).toBeVisible({ timeout: 30_000 });
+  for (const ch of '90') await page.getByRole('button', { name: ch, exact: true }).click();
+  await done.click();
+  await expect(page.getByTestId('strip-item').filter({ hasText: 'lista' })).toHaveCount(1, { timeout: 60_000 });
+}
+
+test.describe('fotos no ideales por la alternativa de archivo', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => Object.defineProperty(navigator, 'mediaDevices', { value: undefined }));
+  });
+
+  for (const [scene, mime] of [
+    ['grande', 'image/jpeg'],
+    ['pantalla', 'image/jpeg'],
+    ['pantalla', 'image/png'],
+    ['bajo-contraste', 'image/jpeg'],
+  ] as const) {
+    test(`${scene} (${mime}) se procesa y sube sin error`, async ({ page }) => {
+      test.setTimeout(120_000);
+      const { sessionId } = await sellerWithDraft(page);
+      await page.goto('/');
+      const buffer = await makePhoto(page, scene, mime);
+      await uploadThroughFileInput(page, sessionId, `foto.${mime === 'image/png' ? 'png' : 'jpg'}`, mime, buffer);
+      const items = await itemsOf(sessionId);
+      expect(items).toHaveLength(1);
+      expect(items[0]!).toMatchObject({ price_cents: 9000, status: 'hidden' });
+      expect(items[0]!.image_path).toMatch(/\.(webp|jpg)$/);
+    });
+  }
+
+  test('JPEG grande en un navegador sin WebP (Safari) sale como JPEG', async ({ page }) => {
+    test.setTimeout(120_000);
+    const { sessionId } = await sellerWithDraft(page);
+    await page.goto('/');
+    const buffer = await makePhoto(page, 'grande', 'image/jpeg');
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.toBlob;
+      HTMLCanvasElement.prototype.toBlob = function (cb, type, quality) {
+        return original.call(this, cb, type === 'image/webp' ? 'image/png' : type, quality);
+      };
+      // @ts-expect-error se emula un navegador sin OffscreenCanvas (el pipeline corre en el hilo principal)
+      delete window.OffscreenCanvas;
+    });
+    await uploadThroughFileInput(page, sessionId, 'grande.jpg', 'image/jpeg', buffer);
+    const items = await itemsOf(sessionId);
+    expect(items[0]!.image_path).toMatch(/\.jpg$/);
   });
 });

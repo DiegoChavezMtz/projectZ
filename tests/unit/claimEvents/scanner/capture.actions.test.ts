@@ -93,11 +93,21 @@ describe('saveCaptureAction (S11-05)', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
+  it('acepta el JPEG de respaldo (navegador sin WebP) y lo manda al service con su tipo', async () => {
+    open();
+    const jpeg = new File(['x'], 'item.jpg', { type: 'image/jpeg' });
+    expect(await saveCaptureAction(form({ image: jpeg }))).toEqual({ status: 'success', itemId: ITEM });
+    expect(create.mock.calls[0]![3].type).toBe('image/jpeg');
+  });
+
   it('es idempotente: un reintento devuelve el artículo ya creado', async () => {
     open();
     findByImagePath.mockResolvedValue({ id: 'already' });
     expect(await saveCaptureAction(form())).toEqual({ status: 'success', itemId: 'already' });
-    expect(findByImagePath).toHaveBeenCalledWith(SESSION, `seller-1/${SESSION}/${CAPTURE}.webp`);
+    expect(findByImagePath).toHaveBeenCalledWith(SESSION, [
+      `seller-1/${SESSION}/${CAPTURE}.webp`,
+      `seller-1/${SESSION}/${CAPTURE}.jpg`,
+    ]);
     expect(create).not.toHaveBeenCalled();
   });
 
@@ -214,7 +224,7 @@ describe('uploadCapture (cliente → Server Action)', () => {
   });
   it('un error no reintentable se propaga como tal', async () => {
     open('live');
-    await expect(uploadCapture(entry, new Blob(['x']))).rejects.toMatchObject({
+    await expect(uploadCapture(entry, new Blob(['x'], { type: 'image/webp' }))).rejects.toMatchObject({
       code: 'invalid_state',
       retryable: false,
     });

@@ -36,6 +36,7 @@ export function CameraCapture({ aspect, labels, disabled = false, onCapture, det
     switchCamera,
     toggleTorch,
     capture,
+    resume,
   } = useCamera();
   const inputRef = useRef<HTMLInputElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -48,20 +49,37 @@ export function CameraCapture({ aspect, labels, disabled = false, onCapture, det
     active: status === 'ready' && !disabled,
   });
   const [flash, setFlash] = useState(false);
+  const [captureFailed, setCaptureFailed] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'idle') void start();
   }, [start, status]);
 
+  // Al volver a mostrarse (tras el recorte o el precio) o a la app (iOS la suspende en segundo plano), se retoma la cámara.
+  useEffect(() => {
+    if (status !== 'ready' || disabled) return;
+    void resume();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void resume();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [status, disabled, resume]);
+
   const shoot = useCallback(async () => {
     if (disabled || status !== 'ready') return;
     const photo = await capture();
-    if (!photo) return;
+    if (!photo) {
+      setCaptureFailed(true);
+      void resume();
+      return;
+    }
+    setCaptureFailed(false);
     setFlash(true);
     window.setTimeout(() => setFlash(false), 140);
     onCapture(photo);
-  }, [capture, disabled, onCapture, status]);
+  }, [capture, disabled, onCapture, resume, status]);
 
   // Barra espaciadora = disparo, salvo que el foco esté en un control que ya la usa.
   useEffect(() => {
@@ -201,6 +219,11 @@ export function CameraCapture({ aspect, labels, disabled = false, onCapture, det
             onChange={onFiles}
           />
         </div>
+        {captureFailed ? (
+          <Text tone="danger" role="alert" size="sm">
+            {c.captureFailed}
+          </Text>
+        ) : null}
         {fileError ? (
           <Text tone="danger" role="alert" size="sm">
             {fileError}

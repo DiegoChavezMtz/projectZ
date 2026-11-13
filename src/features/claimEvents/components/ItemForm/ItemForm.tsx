@@ -61,7 +61,12 @@ export function ItemForm({ sessionId, categoryId, item, onDone, onCancel }: Prop
     defaults,
     (data) => {
       if (imageRef.current)
-        data.set('image', new File([imageRef.current], 'item.webp', { type: 'image/webp' }));
+        data.set(
+          'image',
+          new File([imageRef.current], imageRef.current.type === 'image/jpeg' ? 'item.jpg' : 'item.webp', {
+            type: imageRef.current.type,
+          }),
+        );
     },
   );
   const { register } = form;

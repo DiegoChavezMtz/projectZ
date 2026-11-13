@@ -21,8 +21,21 @@ export const itemImageSize = (width: number, height: number) =>
 /** Calidades WebP a intentar, de mayor a menor, hasta caber en el límite del bucket. */
 export const WEBP_QUALITIES = [0.85, 0.75, 0.65, 0.5] as const;
 
-/** Ruta en el bucket `item-images`: `{user_id}/{session_id}/{uuid}.webp`. */
-export const itemImagePath = (userId: string, sessionId: string, id: string) =>
-  `${userId}/${sessionId}/${id}.webp`;
+/** Formatos de salida del navegador: WebP, o JPEG cuando el navegador no sabe codificar WebP (Safari/iOS). */
+export const ITEM_IMAGE_OUTPUT_TYPES = ['image/webp', 'image/jpeg'] as const;
+export type ItemImageOutputType = (typeof ITEM_IMAGE_OUTPUT_TYPES)[number];
+
+export const isItemImageOutputType = (type: string): type is ItemImageOutputType =>
+  (ITEM_IMAGE_OUTPUT_TYPES as readonly string[]).includes(type);
+
+export const itemImageExtension = (type: ItemImageOutputType) => (type === 'image/jpeg' ? 'jpg' : 'webp');
+
+/** Ruta en el bucket `item-images`: `{user_id}/{session_id}/{uuid}.webp` (o `.jpg` si el navegador no codifica WebP). */
+export const itemImagePath = (
+  userId: string,
+  sessionId: string,
+  id: string,
+  type: ItemImageOutputType = 'image/webp',
+) => `${userId}/${sessionId}/${id}.${itemImageExtension(type)}`;
 
 export { itemImageUrl } from '@/utils/image';

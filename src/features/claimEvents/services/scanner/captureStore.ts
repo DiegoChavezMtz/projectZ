@@ -85,3 +85,35 @@ export function createMemoryCaptureStore(): CaptureStore {
     },
   };
 }
+
+/**
+ * IndexedDB puede fallar (modo privado de Safari, almacenamiento lleno, política del navegador). En ese caso la
+ * cola sigue funcionando en memoria: se pierde la persistencia tras recargar, pero no la captura.
+ */
+export function createResilientCaptureStore(primary: () => CaptureStore): CaptureStore {
+  const memory = createMemoryCaptureStore();
+  let store: CaptureStore | null = null;
+  let degraded = false;
+  try {
+    store = primary();
+  } catch {
+    degraded = true;
+  }
+  const run = async <T>(op: (s: CaptureStore) => Promise<T>): Promise<T> => {
+    if (!degraded && store) {
+      try {
+        return await op(store);
+      } catch {
+        degraded = true;
+      }
+    }
+    return op(memory);
+  };
+  return {
+    put: (record) => run((s) => s.put(record)),
+    get: (id) => run((s) => s.get(id)),
+    listBySession: (sessionId) => run((s) => s.listBySession(sessionId)),
+    delete: (id) => run((s) => s.delete(id)),
+    deleteBySession: (sessionId) => run((s) => s.deleteBySession(sessionId)),
+  };
+}

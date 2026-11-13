@@ -14,7 +14,7 @@ export type WorkerRequest =
 export type WorkerResponse =
   | ({ id: number; ok: true; kind: 'process' } & ProcessOutput)
   | { id: number; ok: true; kind: 'detect'; detection: FrameDetection | null }
-  | { id: number; ok: false; code: string };
+  | { id: number; ok: false; code: string; detail?: string };
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
 
@@ -33,8 +33,13 @@ scope.onmessage = async ({ data }: MessageEvent<WorkerRequest>) => {
       scope.postMessage({ id, ok: true, kind: 'process', ...output } satisfies WorkerResponse);
     }
   } catch (error) {
-    const code = error instanceof ScannerImageError ? error.code : 'worker_failed';
-    scope.postMessage({ id, ok: false, code } satisfies WorkerResponse);
+    const known = error instanceof ScannerImageError;
+    scope.postMessage({
+      id,
+      ok: false,
+      code: known ? error.code : 'worker_failed',
+      detail: known ? error.detail : error instanceof Error ? `${error.name}: ${error.message}` : undefined,
+    } satisfies WorkerResponse);
   } finally {
     bitmap.close();
   }

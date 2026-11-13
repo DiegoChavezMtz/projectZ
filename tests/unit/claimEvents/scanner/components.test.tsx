@@ -288,6 +288,44 @@ describe('CropAdjuster', () => {
   });
 });
 
+describe('cámara en vivo en iOS', () => {
+  it('prepara el video como lo exige Safari: playsinline y muted como atributos', async () => {
+    const { stream } = fakeStream();
+    const devices = fakeDevices(stream);
+    const video = document.createElement('video');
+    Object.defineProperty(video, 'videoWidth', { value: 640 });
+    const { result } = renderHook(() => useCamera(devices));
+    result.current.videoRef.current = video;
+    await act(() => result.current.start());
+    expect(video.getAttribute('playsinline')).toBe('');
+    expect(video.hasAttribute('muted')).toBe(true);
+    expect(video.muted).toBe(true);
+  });
+
+  it('un cuadro sin dimensiones no se entrega como foto', async () => {
+    const { stream } = fakeStream();
+    const video = document.createElement('video'); // videoWidth = 0, como antes de loadedmetadata
+    const { result } = renderHook(() => useCamera(fakeDevices(stream)));
+    result.current.videoRef.current = video;
+    expect(await result.current.capture()).toBeNull();
+  });
+
+  it('resume: si la pista terminó (iOS en segundo plano) reabre la cámara', async () => {
+    const first = fakeStream();
+    const second = fakeStream();
+    const devices = fakeDevices(first.stream);
+    (devices.getUserMedia as ReturnType<typeof vi.fn>).mockResolvedValueOnce(first.stream).mockResolvedValueOnce(second.stream);
+    const video = document.createElement('video');
+    Object.defineProperty(video, 'videoWidth', { value: 640 });
+    const { result } = renderHook(() => useCamera(devices));
+    result.current.videoRef.current = video;
+    await act(() => result.current.start());
+    (first.stream.getVideoTracks()[0] as unknown as { readyState: string }).readyState = 'ended';
+    await act(() => result.current.resume());
+    expect(devices.getUserMedia).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('guía de encuadre en vivo (requisito 1)', () => {
   const rect = (x: number, y: number, w: number, h: number) =>
     ({

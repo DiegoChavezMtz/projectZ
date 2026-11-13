@@ -6,7 +6,7 @@ import { AppError } from '@/utils/errors';
 import { scannerContent } from '../../content/scanner';
 import type { ActionState } from '../../types';
 import { failure, fieldErrors, optionalFile, text } from '../../utils/formData';
-import { ITEM_IMAGE_MAX_BYTES, itemImagePath } from '../../utils/image';
+import { ITEM_IMAGE_MAX_BYTES, ITEM_IMAGE_OUTPUT_TYPES, isItemImageOutputType, itemImagePath } from '../../utils/image';
 import { isSessionEditable } from '../../utils/session.utils';
 import { captureInputSchema, draftEditSchema } from '../../utils/scanner/draft.schemas';
 import { claimItemService } from '../claimItem.service';
@@ -49,7 +49,7 @@ export async function saveCaptureAction(formData: FormData): Promise<SaveCapture
   const { sessionId, captureId, replaceItemId, priceCents } = parsed.data;
   const image = optionalFile(formData, 'image');
   if (!image) return fail('validation');
-  if (image.type !== 'image/webp') return fail('image_type');
+  if (!isItemImageOutputType(image.type)) return fail('image_type');
   if (image.size > ITEM_IMAGE_MAX_BYTES) return fail('image_size');
 
   try {
@@ -80,9 +80,10 @@ export async function saveCaptureAction(formData: FormData): Promise<SaveCapture
 
     // Un evento ya publicado no admite artículos sin precio (la BD también lo impide).
     if (priceCents === null && session.status !== 'draft') return fail('validation');
+    // El mismo captureId pudo subirse como WebP o como JPEG de respaldo: se busca con ambas extensiones.
     const existing = await claimItemService.findByImagePath(
       sessionId,
-      itemImagePath(sellerId, sessionId, captureId),
+      ITEM_IMAGE_OUTPUT_TYPES.map((type) => itemImagePath(sellerId, sessionId, captureId, type)),
     );
     if (existing) return { status: 'success', itemId: existing.id };
 

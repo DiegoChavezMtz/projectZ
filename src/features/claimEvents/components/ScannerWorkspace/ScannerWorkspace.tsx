@@ -107,9 +107,16 @@ export function ScannerWorkspace({
       </header>
 
       {scanner.error ? (
-        <Text tone="danger" role="alert">
-          {scanner.error}
-        </Text>
+        <div role="alert" className={styles.problem}>
+          <Text tone="danger">{scanner.error.message}</Text>
+          <details>
+            <summary>{c.camera.technicalDetails}</summary>
+            <p className={styles.detail}>
+              {c.camera.technicalCode}: {scanner.error.code}
+              {scanner.error.detail ? ` — ${scanner.error.detail}` : ''}
+            </p>
+          </details>
+        </div>
       ) : null}
       {scanner.replaceTarget ? (
         <Text role="status" size="sm">

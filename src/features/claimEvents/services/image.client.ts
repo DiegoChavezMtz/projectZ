@@ -1,8 +1,9 @@
-import { ITEM_IMAGE_MAX_BYTES, WEBP_QUALITIES, itemImageSize } from '../utils/image';
+import { itemImageSize } from '../utils/image';
+import { encodeWithFallback } from '../utils/scanner/encode';
 
 /**
- * Redimensiona (lado mayor ≤ 1600 px) y convierte a WebP en el navegador. Baja la calidad hasta que el
- * resultado cabe en el límite del bucket. Devuelve null si el archivo no se pudo leer o no cabe.
+ * Redimensiona (lado mayor ≤ 1600 px) y convierte a WebP en el navegador (a JPEG si el navegador no sabe
+ * codificar WebP, como Safari). Baja la calidad hasta que el resultado cabe en el límite del bucket. Devuelve null si el archivo no se pudo leer o no cabe.
  */
 export async function toItemWebp(file: File): Promise<Blob | null> {
   let bitmap: ImageBitmap;
@@ -23,11 +24,8 @@ export async function toItemWebp(file: File): Promise<Blob | null> {
   context.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
-  for (const quality of WEBP_QUALITIES) {
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, 'image/webp', quality),
-    );
-    if (blob && blob.type === 'image/webp' && blob.size <= ITEM_IMAGE_MAX_BYTES) return blob;
-  }
-  return null;
+  const result = await encodeWithFallback(
+    (type, quality) => new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality)),
+  );
+  return result.ok ? result.blob : null;
 }

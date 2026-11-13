@@ -9,7 +9,7 @@ export const uploadCapture: Uploader = async (entry, blob) => {
   data.set('captureId', entry.id);
   data.set('priceCents', entry.priceCents === null ? '' : String(entry.priceCents));
   if (entry.replaceItemId) data.set('replaceItemId', entry.replaceItemId);
-  data.set('image', new File([blob], 'item.webp', { type: 'image/webp' }));
+  data.set('image', new File([blob], blob.type === 'image/jpeg' ? 'item.jpg' : 'item.webp', { type: blob.type }));
   let result: Awaited<ReturnType<typeof saveCaptureAction>>;
   try {
     result = await saveCaptureAction(data);

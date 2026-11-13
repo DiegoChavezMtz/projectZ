@@ -32,9 +32,20 @@ export const scannerContent = {
     retry: 'Intentar de nuevo',
     pickFiles: 'Elegir fotos',
     pickFilesNote: 'Cada foto se procesa igual que una captura de cámara.',
+    captureFailed: 'No pudimos tomar la foto: la cámara no entregó imagen. Vuelve a intentarlo.',
     processing: 'Procesando foto…',
     badFile: 'Esa foto no se pudo usar. Elige una imagen JPG, PNG o WebP.',
     processFailed: 'No pudimos procesar la foto. Intenta de nuevo.',
+    problems: {
+      decode_failed:
+        'No pudimos abrir esa foto. Puede que su formato no sea compatible con tu navegador (por ejemplo HEIC o AVIF) o que el archivo esté dañado. Prueba con una foto JPG o PNG.',
+      encode_failed:
+        'Tu navegador no pudo guardar la imagen recortada. Prueba con otra foto o con otro navegador.',
+      warp_failed: 'No pudimos recortar la foto. Ajusta las esquinas a mano o intenta con otra foto.',
+      worker_failed: 'El procesamiento de la foto se interrumpió. Intenta de nuevo.',
+    } as Record<string, string>,
+    technicalDetails: 'Detalle técnico',
+    technicalCode: 'Código',
   },
   crop: {
     title: 'Ajusta el recorte',

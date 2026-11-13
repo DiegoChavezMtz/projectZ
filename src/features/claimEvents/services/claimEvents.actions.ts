@@ -7,7 +7,7 @@ import { AppError } from '@/utils/errors';
 import { claimEventsContent } from '../content/es-MX';
 import type { ActionState } from '../types';
 import { failure, fieldErrors, optionalFile, text } from '../utils/formData';
-import { ITEM_IMAGE_MAX_BYTES } from '../utils/image';
+import { ITEM_IMAGE_MAX_BYTES, isItemImageOutputType } from '../utils/image';
 import { itemFormSchema, readAttributes } from '../utils/item.schemas';
 import {
   lockedSessionFormSchema,
@@ -151,7 +151,7 @@ export async function saveItemAction(_prev: ActionState, formData: FormData): Pr
     return failure('validation', { fieldErrors: fieldErrors(parsed.error.issues) });
 
   const image = optionalFile(formData, 'image');
-  if (image && image.type !== 'image/webp') return failure('image_type');
+  if (image && !isItemImageOutputType(image.type)) return failure('image_type');
   if (image && image.size > ITEM_IMAGE_MAX_BYTES) return failure('image_size');
 
   const input = {
