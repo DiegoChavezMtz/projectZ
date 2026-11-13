@@ -17,6 +17,11 @@ export type CaptureEntry = {
   /** Si existe, la captura reemplaza la imagen de ese artículo en lugar de crear uno. */
   replaceItemId: string | null;
   errorCode: string | null;
+  /**
+   * Captura que debe terminar antes que esta (las piezas de una misma foto suben en orden para que sus artículos
+   * queden en orden de lectura). Si no existe o ya no está en la cola, no espera.
+   */
+  after?: string | null;
 };
 
 export const MAX_CONCURRENT_UPLOADS = 3;
@@ -36,8 +41,12 @@ export function pickRunnable(
 ): CaptureEntry[] {
   const running = entries.filter((e) => e.status === 'uploading').length;
   const free = Math.max(0, max - running);
+  const waitingOn = (e: CaptureEntry) => {
+    const previous = e.after ? entries.find((x) => x.id === e.after) : undefined;
+    return previous !== undefined && previous.status !== 'done';
+  };
   return entries
-    .filter((e) => e.status === 'queued' && e.nextAttemptAt <= now)
+    .filter((e) => e.status === 'queued' && e.nextAttemptAt <= now && !waitingOn(e))
     .sort((a, b) => a.createdAt - b.createdAt)
     .slice(0, free);
 }

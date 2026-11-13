@@ -1,0 +1,85 @@
+.emptyBand {
+  --band-pad: 40px;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+/* Tarjeta sobre tinta: marfil 17.5:1; el botón naranja lleva contorno propio */
+.card {
+  --color-text: var(--zl-color-ivory);
+  --color-text-muted: var(--zl-color-muted);
+  --color-accent: var(--zl-color-orange);
+  --color-on-accent: var(--zl-color-ink);
+  --color-accent-hover: var(--zl-color-orange-soft);
+  --color-accent-text: var(--zl-color-orange);
+  --color-focus-ring: var(--zl-color-ivory);
+  --ap-pill-border: var(--zl-color-orange);
+
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--zl-color-ink);
+  color: var(--zl-color-ivory);
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.meta {
+  color: var(--zl-color-muted);
+}
+
+.link {
+  color: var(--zl-color-ivory);
+  text-decoration: underline;
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.photo {
+  width: 100%;
+}
+
+.cta {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+@media (min-width: 700px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1000px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

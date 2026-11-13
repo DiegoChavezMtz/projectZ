@@ -64,3 +64,46 @@
   outline-offset: -4px;
   border-radius: var(--radius-full);
 }
+
+.outline .other {
+  fill: transparent;
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.outline .otherInvalid {
+  fill: transparent;
+  stroke: var(--color-warning);
+  stroke-dasharray: 5 4;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Número de la pieza: objetivo táctil de 44 px con fondo propio para leerse sobre cualquier foto. */
+.chip {
+  position: absolute;
+  display: grid;
+  min-width: var(--tap-target-min);
+  min-height: var(--tap-target-min);
+  padding: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  cursor: pointer;
+  background: var(--color-surface-overlay);
+  border: 2px solid var(--color-text-muted);
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
+  place-items: center;
+}
+
+.chip[data-invalid] {
+  border-color: var(--color-warning);
+  border-style: dashed;
+}
+
+.chip:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

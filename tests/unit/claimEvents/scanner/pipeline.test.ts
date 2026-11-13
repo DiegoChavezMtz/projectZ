@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { PROCESS_TIMEOUT_MS, createScannerPipeline } from '@/features/claimEvents/services/scanner/scannerPipeline';
+import {
+  PROCESS_TIMEOUT_MS,
+  createScannerPipeline,
+} from '@/features/claimEvents/services/scanner/scannerPipeline';
 
 const output = {
   blob: new Blob(['w'], { type: 'image/webp' }),
@@ -143,9 +146,14 @@ describe('pipeline del escáner', () => {
       }
       vi.stubGlobal('Worker', SilentWorker);
       vi.stubGlobal('OffscreenCanvas', class {});
-      vi.stubGlobal('createImageBitmap', vi.fn(async () => bitmap()));
+      vi.stubGlobal(
+        'createImageBitmap',
+        vi.fn(async () => bitmap()),
+      );
       processBitmap.mockResolvedValue(output);
-      const pending = createScannerPipeline().process(new Blob(['x']), { aspect: { width: 63, height: 88 } });
+      const pending = createScannerPipeline().process(new Blob(['x']), {
+        aspect: { width: 63, height: 88 },
+      });
       await vi.advanceTimersByTimeAsync(PROCESS_TIMEOUT_MS + 10);
       await expect(pending).resolves.toMatchObject({ degraded: true });
       expect(processBitmap).toHaveBeenCalledTimes(1);
@@ -160,7 +168,11 @@ describe('pipeline del escáner', () => {
       'createImageBitmap',
       vi.fn(async () => Promise.reject(new Error('bad'))),
     );
-    vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:x', revokeObjectURL: () => undefined });
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: () => 'blob:x',
+      revokeObjectURL: () => undefined,
+    });
     vi.stubGlobal(
       'Image',
       class {

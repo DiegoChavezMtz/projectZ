@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { decodeImage } from '@/features/claimEvents/services/scanner/decodeImage';
 import { ScannerImageError } from '@/features/claimEvents/services/scanner/scannerImage';
-import { encodeWithFallback, type CanvasEncoder } from '@/features/claimEvents/utils/scanner/encode';
+import {
+  encodeWithFallback,
+  type CanvasEncoder,
+} from '@/features/claimEvents/utils/scanner/encode';
 import {
   ITEM_IMAGE_MAX_BYTES,
   isItemImageOutputType,
@@ -19,7 +22,9 @@ describe('encodeWithFallback (Safari no codifica WebP)', () => {
   });
 
   it('Safari: pedir WebP devuelve PNG → cae a JPEG sin fallar', async () => {
-    const encode = vi.fn<CanvasEncoder>(async (type) => (type === 'image/webp' ? blob('image/png') : blob('image/jpeg')));
+    const encode = vi.fn<CanvasEncoder>(async (type) =>
+      type === 'image/webp' ? blob('image/png') : blob('image/jpeg'),
+    );
     const result = await encodeWithFallback(encode);
     expect(result).toMatchObject({ ok: true, type: 'image/jpeg', webpSupported: false });
     expect(result.ok && result.blob.type).toBe('image/jpeg');
@@ -43,12 +48,20 @@ describe('encodeWithFallback (Safari no codifica WebP)', () => {
   });
 
   it('nada cabe: too_large; el navegador no entrega nada útil: unsupported', async () => {
-    expect(await encodeWithFallback(async (type) => blob(type, ITEM_IMAGE_MAX_BYTES + 1))).toMatchObject({
+    expect(
+      await encodeWithFallback(async (type) => blob(type, ITEM_IMAGE_MAX_BYTES + 1)),
+    ).toMatchObject({
       ok: false,
       reason: 'too_large',
     });
-    expect(await encodeWithFallback(async () => null)).toMatchObject({ ok: false, reason: 'unsupported' });
-    expect(await encodeWithFallback(async () => blob('image/png'))).toMatchObject({ ok: false, reason: 'unsupported' });
+    expect(await encodeWithFallback(async () => null)).toMatchObject({
+      ok: false,
+      reason: 'unsupported',
+    });
+    expect(await encodeWithFallback(async () => blob('image/png'))).toMatchObject({
+      ok: false,
+      reason: 'unsupported',
+    });
   });
 });
 
@@ -92,7 +105,11 @@ describe('decodeImage', () => {
       return bitmap;
     });
     vi.stubGlobal('createImageBitmap', create);
-    vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:x', revokeObjectURL: () => undefined });
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: () => 'blob:x',
+      revokeObjectURL: () => undefined,
+    });
     class FakeImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
@@ -108,7 +125,11 @@ describe('decodeImage', () => {
     vi.stubGlobal('createImageBitmap', async () => {
       throw new DOMException('The source image could not be decoded.', 'InvalidStateError');
     });
-    vi.stubGlobal('URL', { ...URL, createObjectURL: () => 'blob:x', revokeObjectURL: () => undefined });
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: () => 'blob:x',
+      revokeObjectURL: () => undefined,
+    });
     class BrokenImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
@@ -134,14 +155,16 @@ describe('endurecimiento para Safari/iOS', () => {
     try {
       const ids = new Set(Array.from({ length: 50 }, () => randomId()));
       expect(ids.size).toBe(50);
-      for (const id of ids) expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      for (const id of ids)
+        expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     } finally {
       crypto.randomUUID = original;
     }
   });
 
   it('almacén resiliente: si IndexedDB falla, la cola sigue en memoria sin perder la captura', async () => {
-    const { createResilientCaptureStore } = await import('@/features/claimEvents/services/scanner/captureStore');
+    const { createResilientCaptureStore } =
+      await import('@/features/claimEvents/services/scanner/captureStore');
     const broken = {
       put: async () => {
         throw new DOMException('QuotaExceededError');
@@ -167,7 +190,8 @@ describe('endurecimiento para Safari/iOS', () => {
   });
 
   it('almacén resiliente: si ni siquiera se puede abrir IndexedDB, usa memoria', async () => {
-    const { createResilientCaptureStore } = await import('@/features/claimEvents/services/scanner/captureStore');
+    const { createResilientCaptureStore } =
+      await import('@/features/claimEvents/services/scanner/captureStore');
     const store = createResilientCaptureStore(() => {
       throw new Error('indexedDB bloqueado');
     });

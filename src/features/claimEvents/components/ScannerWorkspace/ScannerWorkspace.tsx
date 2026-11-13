@@ -15,10 +15,18 @@ import { BatchReview } from '../BatchReview';
 import { CameraCapture } from '../CameraCapture';
 import { CaptureStrip } from '../CaptureStrip';
 import { CropAdjuster } from '../CropAdjuster';
+import { PiecesReview } from '../PiecesReview';
 import { PricePanel } from '../PricePanel';
 import styles from './ScannerWorkspace.module.css';
 
 const c = scannerContent;
+
+/** Una sola frase breve por causa, sin alarma (S11-17). */
+function cropReason(problems: readonly string[]): string {
+  if (problems.includes('not_found')) return 'not_found';
+  if (problems.includes('edge')) return 'edge';
+  return 'irregular';
+}
 
 type Props = {
   sessionId: string;
@@ -148,6 +156,8 @@ export function ScannerWorkspace({
             disabled={phase !== 'camera'}
             onCapture={scanner.addPhoto}
             detectFrame={scanner.detectFrame}
+            mode={scanner.captureMode}
+            onModeChange={scanner.replaceTarget ? undefined : scanner.setCaptureMode}
           />
           {phase === 'processing' ? (
             <Text role="status" aria-live="polite">
@@ -163,7 +173,9 @@ export function ScannerWorkspace({
             {c.crop.title}
           </Heading>
           <Text size="sm" tone="muted">
-            {current.result.detected ? c.crop.detected : c.crop.manual}
+            {current.result.detected
+              ? c.crop.detected
+              : (c.crop.reasons[cropReason(current.result.problems)] ?? c.crop.manual)}
             {current.result.degraded ? ` ${c.crop.degraded}` : ''}
           </Text>
           {current.result.lowResolution ? (
@@ -186,6 +198,33 @@ export function ScannerWorkspace({
             </Button>
           </div>
         </section>
+      ) : null}
+
+      {phase === 'pieces' && scanner.multi ? (
+        <PiecesReview
+          imageUrl={scanner.multi.originalUrl}
+          imageAspect={scanner.multi.sourceAspect}
+          pieces={scanner.multi.pieces}
+          warnings={scanner.multi.warnings}
+          onCornersChange={scanner.setPieceCorners}
+          onRemove={scanner.removePiece}
+          onAdd={scanner.addPiece}
+          onRetake={scanner.retakeMulti}
+          onConfirm={() => void scanner.confirmPieces()}
+        />
+      ) : null}
+
+      {phase === 'batch' && scanner.batch && scanner.batch.results[scanner.batch.index] ? (
+        <PricePanel
+          key={scanner.batch.results[scanner.batch.index]!.url}
+          cropUrl={scanner.batch.results[scanner.batch.index]!.url}
+          headline={c.multi.batchProgress(scanner.batch.index + 1, scanner.batch.results.length)}
+          lowResolution={scanner.batch.results[scanner.batch.index]!.result.lowResolution}
+          aspect={scanner.aspect}
+          canSkip={canSkipPrice}
+          onDone={(cents) => void scanner.confirmBatchPiece(cents)}
+          onSkipRest={() => void scanner.skipRemainingPrices()}
+        />
       ) : null}
 
       {phase === 'price' && current ? (

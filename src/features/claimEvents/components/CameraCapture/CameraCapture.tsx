@@ -22,10 +22,21 @@ type Props = {
   onCapture: (photo: Blob) => void;
   /** Analiza cuadros del video para orientar el encuadre en vivo (opcional). */
   detectFrame?: (frame: ImageBitmap) => Promise<FrameDetection | null>;
+  /** S11-19: una pieza (por defecto) o varias por foto. Sin esta pareja de props no se muestra la alternancia. */
+  mode?: 'single' | 'multi';
+  onModeChange?: (mode: 'single' | 'multi') => void;
 };
 
 /** Vista de captura: cámara trasera con guía de encuadre, disparo grande y alternativa de archivo. */
-export function CameraCapture({ aspect, labels, disabled = false, onCapture, detectFrame }: Props) {
+export function CameraCapture({
+  aspect,
+  labels,
+  disabled = false,
+  onCapture,
+  detectFrame,
+  mode = 'single',
+  onModeChange,
+}: Props) {
   const {
     videoRef,
     status,
@@ -45,7 +56,8 @@ export function CameraCapture({ aspect, labels, disabled = false, onCapture, det
     videoRef,
     viewportRef,
     guideRef,
-    detect: detectFrame,
+    // El encuadre de 63:88 no aplica a varias piezas: el marco es libre.
+    detect: mode === 'multi' ? undefined : detectFrame,
     active: status === 'ready' && !disabled,
   });
   const [flash, setFlash] = useState(false);
@@ -139,15 +151,32 @@ export function CameraCapture({ aspect, labels, disabled = false, onCapture, det
             type="button"
             data-fit={fit}
             className={clsx(styles.guide, flash && styles.flash)}
-            style={{ aspectRatio: `${aspect.width} / ${aspect.height}` }}
+            data-free={mode === 'multi' || undefined}
+            style={mode === 'multi' ? undefined : { aspectRatio: `${aspect.width} / ${aspect.height}` }}
             onClick={() => void shoot()}
             disabled={disabled || status !== 'ready'}
-            aria-label={`${c.shoot}. ${c.guide(labels)}`}
+            aria-label={`${c.shoot}. ${mode === 'multi' ? scannerContent.multi.guide : c.guide(labels)}`}
           />
         )}
       </div>
 
       <div className={styles.controls}>
+        {onModeChange ? (
+          <div role="group" aria-label={scannerContent.multi.modeLabel} className={styles.modes}>
+            {(['single', 'multi'] as const).map((value) => (
+              <Button
+                key={value}
+                type="button"
+                size="sm"
+                variant={mode === value ? 'primary' : 'secondary'}
+                aria-pressed={mode === value}
+                onClick={() => onModeChange(value)}
+              >
+                {scannerContent.multi[value]}
+              </Button>
+            ))}
+          </div>
+        ) : null}
         {status === 'ready' ? (
           <>
             <Text
@@ -157,7 +186,11 @@ export function CameraCapture({ aspect, labels, disabled = false, onCapture, det
               aria-live="polite"
               data-testid="fit-hint"
             >
-              {detectFrame ? (c.fit[fit] ?? c.guide(labels)) : c.guide(labels)}
+              {mode === 'multi'
+                ? scannerContent.multi.guide
+                : detectFrame
+                  ? (c.fit[fit] ?? c.guide(labels))
+                  : c.guide(labels)}
             </Text>
             <Text size="sm" tone="muted" className={styles.hint}>
               {c.shootHint}

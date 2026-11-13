@@ -137,3 +137,17 @@
     transition: none;
   }
 }
+
+/* Varias piezas: marco libre (sin relación de aspecto) que ocupa casi todo el visor. */
+.guide[data-free] {
+  width: 94%;
+  height: 90%;
+  max-width: none;
+  max-height: none;
+  border-style: dashed;
+}
+
+.modes {
+  display: flex;
+  gap: var(--space-2);
+}

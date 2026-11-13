@@ -1,9 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import robots from '@/app/robots';
 import sitemap from '@/app/sitemap';
 import { LandingPage, landingMetadata } from '@/features/landing';
 import { getSiteUrl } from '@/utils/site';
+
+vi.mock('@/lib/env.public', () => ({
+  publicEnv: { NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.test' },
+}));
 
 describe('LandingPage', () => {
   it('renderiza las secciones con un único h1 y encabezados ordenados', () => {

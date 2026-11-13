@@ -142,6 +142,23 @@ export const landingContent = {
     ] satisfies ReadonlyArray<Benefit>,
   },
   // Ilustración estática: no usa datos reales.
+  // Claims reales abiertos y próximos (solicitud 2026-11-13). TODO_COPY: textos provisionales para Marketing.
+  openClaims: {
+    id: 'claims-abiertos',
+    title: 'Claims abiertos y próximos',
+    subtitle: 'Lo que hay ahora en Zlotify. Entra al claim y elige tu pieza.',
+    live: 'Abierto ahora',
+    scheduled: 'Próximo',
+    startsAt: (when: string) => `Empieza ${when}`,
+    startedAt: (when: string) => `Desde ${when}`,
+    pieces: (n: number) => (n === 1 ? '1 pieza' : `${n} piezas`),
+    seller: (name: string) => `Espacio: ${name}`,
+    open: 'Ver claim',
+    photosLabel: 'Piezas de muestra',
+    emptyTitle: 'Por ahora no hay claims abiertos ni próximos',
+    emptyText: 'Cuando un vendedor publique uno, aparecerá aquí. Mientras, así se ve una sala:',
+    exampleLabel: 'Ejemplo',
+  },
   preview: {
     id: 'sala-en-vivo',
     title: 'Así se ve una sala en vivo',

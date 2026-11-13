@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { Badge } from '@/components/atoms/Badge';
+import { InfoTag } from '@/components/atoms/InfoTag';
 import { PriceCapsule } from '@/components/atoms/PriceCapsule';
 import type { PieceState } from '@/components/atoms/StatePill';
 import { PieceFrame } from '@/components/molecules/PieceFrame';
@@ -18,7 +19,7 @@ const kinds = {
 } as const satisfies Record<string, PieceState>;
 
 /** Ilustración estática en HTML/CSS. No consume datos reales. */
-export function LiveClaimPreview() {
+export function LiveClaimPreview({ example = false }: { example?: boolean }) {
   const {
     id,
     title,
@@ -53,6 +54,7 @@ export function LiveClaimPreview() {
       <div className={styles.room} role="img" aria-label={illustrationLabel} data-theme="dark">
         <div className={styles.bar} aria-hidden="true">
           <span className={styles.roomName}>{roomLabel}</span>
+          {example ? <InfoTag tone="ink">{landingContent.openClaims.exampleLabel}</InfoTag> : null}
           <Badge tone="accent">{liveBadge}</Badge>
         </div>
         <div className={styles.body} aria-hidden="true">

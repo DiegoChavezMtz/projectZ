@@ -173,3 +173,56 @@ export function applyHomography(h: readonly number[], x: number, y: number): Poi
     y: ((h[3] as number) * x + (h[4] as number) * y + (h[5] as number)) / w,
   };
 }
+
+/** Margen exterior alrededor de la pieza validada, como fracción del lado menor, por lado (S11-18). */
+export const CROP_MARGIN = 0.02;
+
+/** Separa cada lado del cuadrilátero `margin` píxeles hacia afuera y vuelve a intersectar los lados contiguos. */
+export function expandQuad(quad: Quad, margin: number): Quad {
+  if (margin === 0) return quad;
+  const lines = [0, 1, 2, 3].map((i) => {
+    const a = quad[i] as Point;
+    const b = quad[(i + 1) % 4] as Point;
+    const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    const dx = (b.x - a.x) / length;
+    const dy = (b.y - a.y) / length;
+    return { point: { x: a.x + dy * margin, y: a.y - dx * margin }, dx, dy };
+  });
+  return quad.map((corner, i) => {
+    const l1 = lines[(i + 3) % 4] as (typeof lines)[number];
+    const l2 = lines[i] as (typeof lines)[number];
+    const det = l1.dx * l2.dy - l1.dy * l2.dx;
+    if (Math.abs(det) < 1e-9) return corner;
+    const t = ((l2.point.x - l1.point.x) * l2.dy - (l2.point.y - l1.point.y) * l2.dx) / det;
+    return { x: l1.point.x + t * l1.dx, y: l1.point.y + t * l1.dy };
+  }) as Quad;
+}
+
+const inside = (quad: Quad, width: number, height: number) =>
+  quad.every((p) => p.x >= -1e-6 && p.y >= -1e-6 && p.x <= width + 1e-6 && p.y <= height + 1e-6);
+
+/**
+ * Cuadrilátero con el margen exterior `CROP_MARGIN` (del lado menor, por lado). Si con el margen completo alguna
+ * esquina se saldría de la foto, el margen se reduce (nunca se desplazan las esquinas por separado), así que la
+ * forma no se deforma: una pieza pegada al borde de la foto simplemente tiene menos margen.
+ */
+export function expandQuadWithin(
+  quad: Quad,
+  width: number,
+  height: number,
+  fraction = CROP_MARGIN,
+): { quad: Quad; margin: number } {
+  const shortSide = Math.min(quadSize(quad).width, quadSize(quad).height);
+  const full = shortSide * fraction;
+  if (full <= 0) return { quad, margin: 0 };
+  const expanded = expandQuad(quad, full);
+  if (inside(expanded, width, height)) return { quad: expanded, margin: full };
+  let low = 0;
+  let high = full;
+  for (let i = 0; i < 12; i += 1) {
+    const mid = (low + high) / 2;
+    if (inside(expandQuad(quad, mid), width, height)) low = mid;
+    else high = mid;
+  }
+  return { quad: expandQuad(quad, low), margin: low };
+}

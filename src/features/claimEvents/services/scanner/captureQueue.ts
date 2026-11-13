@@ -38,6 +38,10 @@ export type NewCapture = {
   blob: Blob;
   priceCents: number | null;
   replaceItemId?: string | null;
+  /** Id propio (las piezas de una foto usan `<fotoId>-<n>`, así un reintento no duplica). */
+  id?: string;
+  /** Captura previa de la misma foto: esta sube después de que aquella termine. */
+  after?: string | null;
 };
 
 export type CaptureQueue = {
@@ -129,9 +133,10 @@ export function createCaptureQueue({
       pump();
       return entries;
     },
-    async add({ sessionId, blob, priceCents, replaceItemId = null }) {
+    async add({ sessionId, blob, priceCents, replaceItemId = null, id, after = null }) {
       const entry: CaptureEntry = {
-        id: newId(),
+        id: id ?? newId(),
+        after,
         sessionId,
         status: 'queued',
         priceCents,

@@ -1,4 +1,5 @@
 import { isConvexQuad, orderCorners, polygonArea } from './geometry';
+import { fitLineRobust, intersectLines, type Line } from './refine';
 import type { Detection, Point, Quad, RawImage } from './types';
 
 /** Lado mayor con el que se analiza la foto: suficiente para el contorno y barato en un celular de gama media. */
@@ -96,7 +97,7 @@ function otsu(histogram: Uint32Array, total: number): number {
 }
 
 /** Máscara de primer plano: distancia de color al fondo (con suavizado 3×3) y umbral de Otsu. */
-function foregroundMask(image: RawImage): Uint8Array | null {
+export function foregroundMask(image: RawImage): Uint8Array | null {
   const { width, height, data } = image;
   const [br, bg, bb] = backgroundColor(image);
   const distance = new Float32Array(width * height);
@@ -239,9 +240,7 @@ export function simplifyToQuad(hull: readonly Point[]): Point[] | null {
   return poly;
 }
 
-type Line = { point: Point; dx: number; dy: number };
-
-/** Recta de mínimos cuadrados totales (PCA) por los puntos de borde cercanos al lado `a`→`b`. */
+/** Recta robusta (sin atípicos) por los puntos de borde cercanos al lado `a`→`b`. */
 function fitSide(boundary: readonly Point[], a: Point, b: Point, tolerance: number): Line | null {
   const length = Math.hypot(b.x - a.x, b.y - a.y);
   if (length === 0) return null;
@@ -254,37 +253,17 @@ function fitSide(boundary: readonly Point[], a: Point, b: Point, tolerance: numb
     if (along > length * 0.1 && along < length * 0.9 && across <= tolerance) picked.push(p);
   }
   if (picked.length < 5) return null;
-  const mx = picked.reduce((sum, p) => sum + p.x, 0) / picked.length;
-  const my = picked.reduce((sum, p) => sum + p.y, 0) / picked.length;
-  let sxx = 0;
-  let sxy = 0;
-  let syy = 0;
-  for (const p of picked) {
-    sxx += (p.x - mx) ** 2;
-    sxy += (p.x - mx) * (p.y - my);
-    syy += (p.y - my) ** 2;
-  }
-  const angle = 0.5 * Math.atan2(2 * sxy, sxx - syy);
-  return { point: { x: mx, y: my }, dx: Math.cos(angle), dy: Math.sin(angle) };
-}
-
-function intersect(l1: Line, l2: Line): Point | null {
-  const det = l1.dx * l2.dy - l1.dy * l2.dx;
-  if (Math.abs(det) < 1e-6) return null;
-  const t = ((l2.point.x - l1.point.x) * l2.dy - (l2.point.y - l1.point.y) * l2.dx) / det;
-  return { x: l1.point.x + t * l1.dx, y: l1.point.y + t * l1.dy };
+  return fitLineRobust(picked)?.line ?? null;
 }
 
 /** Afina las esquinas al subpíxel: ajusta una recta a cada lado e intersecta las contiguas. */
 export function refineCorners(rough: Quad, boundary: readonly Point[], tolerance = 3): Quad {
-  const lines = [0, 1, 2, 3].map((i) =>
-    fitSide(boundary, rough[i] as Point, rough[(i + 1) % 4] as Point, tolerance),
-  );
+  const lines = [0, 1, 2, 3].map((i) => fitSide(boundary, rough[i] as Point, rough[(i + 1) % 4] as Point, tolerance));
   const refined = rough.map((corner, i) => {
     const previous = lines[(i + 3) % 4];
     const current = lines[i];
     if (!previous || !current) return corner;
-    const point = intersect(previous, current);
+    const point = intersectLines(previous, current);
     // Si la intersección se aleja demasiado de la esquina aproximada, no se confía en el ajuste.
     return point && Math.hypot(point.x - corner.x, point.y - corner.y) < 12 ? point : corner;
   });

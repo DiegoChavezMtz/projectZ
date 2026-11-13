@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Categories } from '../Categories';
 import { Faq } from '../Faq';
 import { FinalCta } from '../FinalCta';
@@ -7,6 +8,7 @@ import { Hero } from '../Hero';
 import { HowItWorks } from '../HowItWorks';
 import { JsonLd } from '../JsonLd';
 import { LiveClaimPreview } from '../LiveClaimPreview';
+import { OpenClaims } from '../OpenClaims';
 import { Pricing } from '../Pricing';
 import { Promises } from '../Promises';
 import styles from './LandingPage.module.css';
@@ -20,7 +22,9 @@ export function LandingPage() {
       <Promises />
       <Categories />
       <HowItWorks />
-      <LiveClaimPreview />
+      <Suspense fallback={<LiveClaimPreview example />}>
+        <OpenClaims />
+      </Suspense>
       <ForSellers />
       <ForBuyers />
       <Pricing />

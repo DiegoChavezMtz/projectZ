@@ -383,3 +383,191 @@ test.describe('fotos no ideales por la alternativa de archivo', () => {
     expect(items[0]!.image_path).toMatch(/\.jpg$/);
   });
 });
+
+/** Foto con piezas 63:88 sobre fondo oscuro liso: `cols × rows` con `gap` px entre ellas (0 = se tocan). */
+async function makeCards(page: Page, cols: number, rows: number, gap: number) {
+  const base64 = await page.evaluate(
+    async ([c, r, g]) => {
+      const cell = 400;
+      const cellH = Math.round(cell * (88 / 63));
+      const width = 1800;
+      const height = 1400;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = '#1c1e22';
+      ctx.fillRect(0, 0, width, height);
+      const totalW = c * cell + (c - 1) * g;
+      const totalH = r * cellH + (r - 1) * g;
+      const x0 = (width - totalW) / 2;
+      const y0 = (height - totalH) / 2;
+      for (let row = 0; row < r; row += 1)
+        for (let col = 0; col < c; col += 1) {
+          const x = x0 + col * (cell + g);
+          const y = y0 + row * (cellH + g);
+          ctx.fillStyle = '#d6ba46';
+          ctx.fillRect(x, y, cell, cellH);
+          ctx.fillStyle = '#3a6ea5';
+          ctx.fillRect(x + cell * 0.06, y + cellH * 0.05, cell * 0.88, cellH * 0.9);
+        }
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.9));
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return btoa(binary);
+    },
+    [cols, rows, gap] as const,
+  );
+  return Buffer.from(base64, 'base64');
+}
+
+test.describe('varias piezas por foto (S11-19)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => Object.defineProperty(navigator, 'mediaDevices', { value: undefined }));
+  });
+
+  test('6 piezas sobre fondo liso → 6 borradores en orden de lectura, con precio pieza por pieza', async ({ page }) => {
+    test.setTimeout(180_000);
+    const { sessionId } = await sellerWithDraft(page);
+    await page.goto('/');
+    const photo = await makeCards(page, 3, 2, 90);
+    await page.goto(`/dashboard/claims/${sessionId}/scanner`);
+    await expect(page.getByTestId('scanner-file-input')).toBeAttached({ timeout: 30_000 });
+    // Una pieza es el modo por defecto.
+    await expect(page.getByRole('button', { name: 'Una pieza' })).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Varias piezas' }).click();
+    await page.getByTestId('scanner-file-input').setInputFiles({ name: 'seis.jpg', mimeType: 'image/jpeg', buffer: photo });
+
+    await expect(page.getByRole('heading', { name: /Piezas detectadas \(6 piezas\)/ })).toBeVisible({ timeout: 40_000 });
+    await expect(page.getByTestId('piece-row')).toHaveCount(6);
+    await expect(page.getByTestId('piece-row').getByText('Por revisar')).toHaveCount(0);
+    const axe = await new AxeBuilder({ page }).analyze();
+    expect(axe.violations.filter((v) => v.impact === 'critical')).toEqual([]);
+
+    await page.getByRole('button', { name: 'Confirmar 6 piezas' }).click();
+    for (let n = 1; n <= 6; n += 1) {
+      await expect(page.getByTestId('price-headline')).toHaveText(`Pieza ${n} de 6`, { timeout: 40_000 });
+      for (const ch of `${n}00`) await page.getByRole('button', { name: ch, exact: true }).click();
+      await page.getByRole('button', { name: 'Listo', exact: true }).click();
+    }
+    await expect(page.getByTestId('strip-item').filter({ hasText: 'lista' })).toHaveCount(6, { timeout: 90_000 });
+
+    const items = await itemsOf(sessionId);
+    expect(items).toHaveLength(6);
+    // Orden de lectura: la pieza n tiene el precio n00 y la posición n.
+    expect(items.map((i) => i.price_cents)).toEqual([10000, 20000, 30000, 40000, 50000, 60000]);
+    expect(items.map((i) => i.position)).toEqual([1, 2, 3, 4, 5, 6]);
+    // Ids derivados <fotoId>-<n>: una sola foto, seis imágenes distintas.
+    const paths = items.map((i) => i.image_path!);
+    expect(new Set(paths).size).toBe(6);
+    paths.forEach((p, i) => expect(p).toMatch(new RegExp(`-${i + 1}\\.(webp|jpg)$`)));
+    expect(new Set(paths.map((p) => p.replace(/-\d+\.(webp|jpg)$/, ''))).size).toBe(1);
+  });
+
+  test('"Omitir los precios que faltan" guarda el resto sin precio', async ({ page }) => {
+    test.setTimeout(150_000);
+    const { sessionId } = await sellerWithDraft(page);
+    await page.goto('/');
+    const photo = await makeCards(page, 2, 2, 90);
+    await page.goto(`/dashboard/claims/${sessionId}/scanner`);
+    await expect(page.getByTestId('scanner-file-input')).toBeAttached({ timeout: 30_000 });
+    await page.getByRole('button', { name: 'Varias piezas' }).click();
+    await page.getByTestId('scanner-file-input').setInputFiles({ name: 'cuatro.jpg', mimeType: 'image/jpeg', buffer: photo });
+    await page.getByRole('button', { name: 'Confirmar 4 piezas' }).click({ timeout: 40_000 });
+    await expect(page.getByTestId('price-headline')).toHaveText('Pieza 1 de 4', { timeout: 40_000 });
+    for (const ch of '250') await page.getByRole('button', { name: ch, exact: true }).click();
+    await page.getByRole('button', { name: 'Listo', exact: true }).click();
+    await page.getByRole('button', { name: 'Omitir los precios que faltan' }).click();
+    await expect(page.getByTestId('strip-item').filter({ hasText: 'lista' })).toHaveCount(4, { timeout: 90_000 });
+    const items = await itemsOf(sessionId);
+    expect(items.map((i) => i.price_cents)).toEqual([25000, 0, 0, 0]);
+  });
+
+  test('piezas que se tocan: aviso corto, sin cortes inventados, y se puede repetir la foto', async ({ page }) => {
+    test.setTimeout(120_000);
+    const { sessionId } = await sellerWithDraft(page);
+    await page.goto('/');
+    const photo = await makeCards(page, 2, 1, 0);
+    await page.goto(`/dashboard/claims/${sessionId}/scanner`);
+    await expect(page.getByTestId('scanner-file-input')).toBeAttached({ timeout: 30_000 });
+    await page.getByRole('button', { name: 'Varias piezas' }).click();
+    await page.getByTestId('scanner-file-input').setInputFiles({ name: 'tocan.jpg', mimeType: 'image/jpeg', buffer: photo });
+    await expect(page.getByRole('heading', { name: /Piezas detectadas/ })).toBeVisible({ timeout: 40_000 });
+    await expect(page.getByText(/se tocan o no se distinguen/)).toBeVisible();
+    await expect(page.getByTestId('piece-row').getByText('Por revisar').first()).toBeVisible();
+    // No se puede confirmar algo dudoso sin revisarlo.
+    await expect(page.getByRole('button', { name: /Confirmar/ })).toBeDisabled();
+    await page.getByRole('button', { name: 'Repetir la foto' }).click();
+    await expect(page.getByRole('heading', { name: /Piezas detectadas/ })).toHaveCount(0);
+    expect(await itemsOf(sessionId)).toHaveLength(0);
+  });
+
+  test('una pieza sigue siendo el modo por defecto y funciona igual (sin regresión)', async ({ page }) => {
+    test.setTimeout(120_000);
+    const { sessionId } = await sellerWithDraft(page);
+    await page.goto('/');
+    const photo = await makeCards(page, 1, 1, 0);
+    await uploadThroughFileInput(page, sessionId, 'una.jpg', 'image/jpeg', photo);
+    const items = await itemsOf(sessionId);
+    expect(items).toHaveLength(1);
+    expect(items[0]!.price_cents).toBe(9000);
+
+    // S11-18: se ve un hilo del fondo oscuro en los cuatro bordes y la pieza completa dentro.
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/item-images/${items[0]!.image_path}`;
+    const pixels = await page.evaluate(async (src) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = src;
+      await img.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      const at = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data.slice(0, 3));
+      return { w: img.width, h: img.height, tl: at(2, 2), br: at(img.width - 3, img.height - 3), tr: at(img.width - 3, 2), bl: at(2, img.height - 3), mid: at(Math.floor(img.width / 2), Math.floor(img.height / 2)) };
+    }, url);
+    const dark = (p: number[]) => p.reduce((a, b) => a + b, 0) < 170;
+    expect([pixels.tl, pixels.tr, pixels.bl, pixels.br].every(dark)).toBe(true);
+    expect(dark(pixels.mid)).toBe(false);
+    expect(Math.max(pixels.w, pixels.h)).toBeLessThanOrEqual(1600);
+  });
+
+  test('S11-17: una sombra pegada a la pieza no se endereza en silencio: se abre el ajuste', async ({ page }) => {
+    test.setTimeout(120_000);
+    const { sessionId } = await sellerWithDraft(page);
+    await page.goto('/');
+    const base64 = await page.evaluate(async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1400;
+      canvas.height = 1800;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = '#e6e4dc';
+      ctx.fillRect(0, 0, 1400, 1800);
+      // Sombra oscura pegada bajo la pieza y que se extiende más a la derecha: la silueta ya no es un rectángulo.
+      ctx.fillStyle = 'rgba(37, 38, 42, 0.85)';
+      ctx.fillRect(292, 1278, 790, 130);
+      ctx.fillStyle = '#d6ba46';
+      ctx.fillRect(300, 300, 700, 978);
+      ctx.fillStyle = '#3a6ea5';
+      ctx.fillRect(342, 349, 616, 880);
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.9));
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return btoa(binary);
+    });
+    await page.goto(`/dashboard/claims/${sessionId}/scanner`);
+    await expect(page.getByTestId('scanner-file-input')).toBeAttached({ timeout: 30_000 });
+    await page.getByTestId('scanner-file-input').setInputFiles({ name: 'sombra.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(base64, 'base64') });
+    const apply = page.getByRole('button', { name: 'Aplicar recorte' });
+    await expect(apply).toBeVisible({ timeout: 40_000 });
+    await expect(page.getByRole('button', { name: 'Listo', exact: true })).toHaveCount(0);
+    await expect(page.getByText(/no parece una pieza completa|llena la foto|ver el contorno/)).toBeVisible();
+    // Se puede continuar tras revisar: el recorte se ve antes de guardar.
+    await apply.click();
+    await expect(page.getByRole('button', { name: 'Listo', exact: true })).toBeVisible({ timeout: 30_000 });
+    expect(await itemsOf(sessionId)).toHaveLength(0);
+  });
+});

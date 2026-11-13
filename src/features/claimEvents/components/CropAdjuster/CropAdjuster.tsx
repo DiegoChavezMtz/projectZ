@@ -16,12 +16,14 @@ type Props = {
   /** Esquinas normalizadas (0 a 1): sup. izq., sup. der., inf. der., inf. izq. */
   corners: Quad;
   onChange: (corners: Quad) => void;
+  /** Otras piezas de la misma foto (varias piezas): se dibujan atenuadas con su número y se pueden seleccionar. */
+  others?: { id: string; corners: Quad; label: string; ariaLabel: string; invalid?: boolean; onSelect: () => void }[];
 };
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 /** Ajuste manual de las cuatro esquinas: arrastre con puntero o flechas del teclado en cada punto. */
-export function CropAdjuster({ imageUrl, imageAspect, corners, onChange }: Props) {
+export function CropAdjuster({ imageUrl, imageAspect, corners, onChange, others = [] }: Props) {
   const frame = useRef<HTMLDivElement>(null);
 
   const move = (index: number, x: number, y: number) => {
@@ -62,8 +64,32 @@ export function CropAdjuster({ imageUrl, imageAspect, corners, onChange }: Props
           preserveAspectRatio="none"
           aria-hidden="true"
         >
+          {others.map((other) => (
+            <polygon
+              key={other.id}
+              className={other.invalid ? styles.otherInvalid : styles.other}
+              points={other.corners.map((p) => `${p.x * 100},${p.y * 100}`).join(' ')}
+            />
+          ))}
           <polygon points={corners.map((p) => `${p.x * 100},${p.y * 100}`).join(' ')} />
         </svg>
+        {others.map((other) => {
+          const cx = other.corners.reduce((s, p) => s + p.x, 0) / 4;
+          const cy = other.corners.reduce((s, p) => s + p.y, 0) / 4;
+          return (
+            <button
+              key={other.id}
+              type="button"
+              className={styles.chip}
+              data-invalid={other.invalid || undefined}
+              style={{ left: `${cx * 100}%`, top: `${cy * 100}%` }}
+              aria-label={other.ariaLabel}
+              onClick={other.onSelect}
+            >
+              {other.label}
+            </button>
+          );
+        })}
         {corners.map((point, index) => (
           <button
             key={index}

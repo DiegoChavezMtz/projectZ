@@ -33,8 +33,13 @@ type Props = {
   /** La región recortada tiene poca resolución: se avisa, sin bloquear. */
   lowResolution?: boolean;
   onDone: (priceCents: number | null) => void;
-  onAdjust: () => void;
-  onRepeat: () => void;
+  /** Ajustar el recorte y repetir la foto no aplican al precio por lote de varias piezas. */
+  onAdjust?: () => void;
+  onRepeat?: () => void;
+  /** Varias piezas: "Pieza 2 de 6" sobre el recorte. */
+  headline?: string;
+  /** Varias piezas: omitir los precios de las que faltan (se completan en la revisión por lotes). */
+  onSkipRest?: () => void;
 };
 
 /** Panel posterior a cada captura: recorte visible, teclado numérico para el precio y "Listo". */
@@ -47,6 +52,8 @@ export function PricePanel({
   onDone,
   onAdjust,
   onRepeat,
+  headline,
+  onSkipRest,
 }: Props) {
   const [value, setValue] = useState(
     initialCents ? centsToPesosInput(initialCents).replace(/\.00$/, '') : '',
@@ -86,6 +93,11 @@ export function PricePanel({
 
   return (
     <section className={styles.root} aria-label={c.title}>
+      {headline ? (
+        <p className={styles.headline} role="status" data-testid="price-headline">
+          {headline}
+        </p>
+      ) : null}
       <Picture className={styles.crop} aspect={aspect} src={cropUrl} alt={c.cropAlt} priority />
       <div className={styles.side}>
         <p
@@ -129,16 +141,25 @@ export function PricePanel({
               {c.skip}
             </Button>
           ) : null}
-          <Button type="button" variant="ghost" onClick={onAdjust}>
-            {scannerContent.crop.adjust}
-          </Button>
-          <Button type="button" variant="ghost" onClick={onRepeat}>
-            {c.repeat}
-          </Button>
+          {onAdjust ? (
+            <Button type="button" variant="ghost" onClick={onAdjust}>
+              {scannerContent.crop.adjust}
+            </Button>
+          ) : null}
+          {onRepeat ? (
+            <Button type="button" variant="ghost" onClick={onRepeat}>
+              {c.repeat}
+            </Button>
+          ) : null}
         </div>
+        {canSkip && onSkipRest ? (
+          <Button type="button" variant="ghost" onClick={onSkipRest}>
+            {scannerContent.multi.skipRest}
+          </Button>
+        ) : null}
         {canSkip ? (
           <Text size="sm" tone="muted">
-            {c.skipHint}
+            {onSkipRest ? scannerContent.multi.skipRestHint : c.skipHint}
           </Text>
         ) : null}
       </div>

@@ -9,7 +9,10 @@ const v = claimEventsContent.validation;
 /** Datos de una captura que llegan a la Server Action (todo viene como texto del FormData). */
 export const captureInputSchema = z.object({
   sessionId: z.uuid(),
-  captureId: z.uuid(),
+  /** UUID de la captura, o `<uuid>-<n>` para la pieza n de una foto con varias piezas. */
+  captureId: z
+    .string()
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(-[0-9]{1,2})?$/i),
   replaceItemId: z.uuid().optional(),
   /** Centavos enteros; vacío = sin precio. */
   priceCents: z

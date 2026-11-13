@@ -314,7 +314,9 @@ describe('cámara en vivo en iOS', () => {
     const first = fakeStream();
     const second = fakeStream();
     const devices = fakeDevices(first.stream);
-    (devices.getUserMedia as ReturnType<typeof vi.fn>).mockResolvedValueOnce(first.stream).mockResolvedValueOnce(second.stream);
+    (devices.getUserMedia as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce(first.stream)
+      .mockResolvedValueOnce(second.stream);
     const video = document.createElement('video');
     Object.defineProperty(video, 'videoWidth', { value: 640 });
     const { result } = renderHook(() => useCamera(devices));

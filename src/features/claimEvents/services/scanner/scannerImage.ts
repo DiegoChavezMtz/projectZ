@@ -1,12 +1,15 @@
-import { DETECT_MAX_SIDE, MIN_CONFIDENCE, detectQuad } from '../../utils/scanner/detect';
+import { DETECT_MAX_SIDE, detectQuad } from '../../utils/scanner/detect';
+import {
+  outputGeometry,
+  planDetection,
+  planPieces,
+  type DetectionProblem,
+  type MultiPlan,
+} from '../../utils/scanner/plan';
 import {
   centeredCropQuad,
-  clampQuad,
   denormalizeQuad,
   normalizeQuad,
-  orientQuad,
-  quadSize,
-  targetSize,
 } from '../../utils/scanner/geometry';
 import type { Aspect, Quad, RawImage } from '../../utils/scanner/types';
 import { warpPerspective } from '../../utils/scanner/warp';
@@ -18,6 +21,8 @@ import { encodeWithFallback } from '../../utils/scanner/encode';
 
 /** Lado mayor con el que se muestrea la foto para el recorte: sobra para una salida de 1600 px. */
 const SAMPLE_MAX_SIDE = 2400;
+/** Para varias piezas se analiza con más resolución que para una (piezas pequeñas en la foto). */
+const MULTI_DETECT_MAX_SIDE = 480;
 
 type AnyCanvas = OffscreenCanvas | HTMLCanvasElement;
 type AnyContext = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
@@ -36,6 +41,8 @@ export type ProcessOutput = {
   /** Falso si no hubo detección confiable y se usó el recorte centrado. */
   detected: boolean;
   confidence: number;
+  /** Por qué no se confió en la detección (vacío si es válida o si las esquinas son manuales). */
+  problems: DetectionProblem[];
   /** Falso si el navegador no codifica WebP y la salida es JPEG. */
   webpSupported: boolean;
   /** Proporción ancho/alto de la foto original (para dibujar el ajuste manual sin deformar). */
@@ -112,15 +119,21 @@ async function encodeImage(canvas: AnyCanvas): Promise<{ blob: Blob; webpSupport
   );
 }
 
-/** Detecta (o usa las esquinas dadas), corrige la perspectiva, recorta y convierte a WebP. */
+/**
+ * Detecta (o usa las esquinas dadas), corrige la perspectiva solo si el cuadrilátero es válido, agrega el margen
+ * exterior, recorta y convierte a WebP/JPEG. Con una detección dudosa NO hay perspectiva automática: se devuelve
+ * `detected: false` con las esquinas sugeridas para que la interfaz abra el ajuste.
+ */
 export async function processBitmap(
   bitmap: ImageBitmap,
   options: ProcessOptions,
 ): Promise<ProcessOutput> {
   const maxSide = options.maxSide ?? ITEM_IMAGE_MAX_SIDE;
+  const sample = rasterize(bitmap, SAMPLE_MAX_SIDE);
   let normalized = options.corners;
   let confidence = 1;
   let detected = Boolean(options.corners);
+  let problems: DetectionProblem[] = [];
 
   if (!normalized) {
     let small: RawImage | null = null;
@@ -131,40 +144,24 @@ export async function processBitmap(
     } catch {
       // Sin detección no hay falla: se cae al recorte centrado y se abre el ajuste manual.
     }
-    if (small && found && found.confidence >= MIN_CONFIDENCE) {
-      normalized = normalizeQuad(found.corners, small.width, small.height);
-      confidence = found.confidence;
-      detected = true;
-    } else {
-      confidence = found?.confidence ?? 0;
-      normalized = normalizeQuad(
-        centeredCropQuad(bitmap.width, bitmap.height, options.aspect),
-        bitmap.width,
-        bitmap.height,
-      );
-    }
+    const plan = planDetection(sample, found, small ?? sample, options.aspect, bitmap);
+    normalized = plan.corners;
+    confidence = plan.confidence;
+    detected = plan.detected;
+    problems = plan.problems;
   }
 
-  const sample = rasterize(bitmap, SAMPLE_MAX_SIDE);
-  const quad = orientQuad(
-    clampQuad(
-      denormalizeQuad(normalized, sample.width, sample.height),
-      sample.width,
-      sample.height,
-    ),
+  const geometry = outputGeometry(
+    denormalizeQuad(normalized, sample.width, sample.height),
+    sample,
     options.aspect,
+    bitmap.width / sample.width,
+    maxSide,
   );
-  // La salida no se agranda más allá de lo que la fuente dio: una foto pobre se marca, no se infla.
-  const scaleToOriginal = bitmap.width / sample.width;
-  const cropSize = quadSize(quad);
-  const cropLongSide = Math.max(cropSize.width, cropSize.height) * scaleToOriginal;
-  const { width, height } = targetSize(
-    options.aspect,
-    Math.max(1, Math.min(maxSide, Math.round(cropLongSide))),
-  );
+  const { width, height, cropLongSide } = geometry;
   // Esquinas degeneradas (p. ej. ajuste manual con puntos encimados): se usa el recorte centrado en lugar de fallar.
   const warped =
-    warpPerspective(sample, quad, width, height) ??
+    warpPerspective(sample, geometry.quad, width, height) ??
     warpPerspective(sample, centeredCropQuad(sample.width, sample.height, options.aspect), width, height);
   if (!warped) throw new ScannerImageError('warp_failed', 'No se pudo calcular la perspectiva');
 
@@ -180,6 +177,7 @@ export async function processBitmap(
     corners: normalized,
     detected,
     confidence,
+    problems,
     webpSupported,
     sourceAspect: bitmap.width / bitmap.height,
     cropLongSide: Math.round(cropLongSide),
@@ -196,4 +194,17 @@ export function detectBitmap(bitmap: ImageBitmap): FrameDetection | null {
     corners: normalizeQuad(found.corners, small.width, small.height),
     confidence: found.confidence,
   };
+}
+
+export type MultiResult = MultiPlan & {
+  /** Proporción ancho/alto de la foto original. */
+  sourceAspect: number;
+};
+
+/** S11-19: detecta todas las piezas de la foto (sin recortar todavía). Cada pieza se recorta luego con `processBitmap`. */
+export function detectManyBitmap(bitmap: ImageBitmap, aspect: Aspect, maxPieces?: number): MultiResult {
+  const small = rasterize(bitmap, MULTI_DETECT_MAX_SIDE);
+  const sample = rasterize(bitmap, SAMPLE_MAX_SIDE);
+  const plan = planPieces(sample, small, aspect, { maxPieces });
+  return { ...plan, sourceAspect: bitmap.width / bitmap.height };
 }

@@ -1,11 +1,14 @@
 import {
   detectBitmap,
+  detectManyBitmap,
+  type MultiResult,
   processBitmap,
   ScannerImageError,
   type FrameDetection,
   type ProcessOptions,
   type ProcessOutput,
 } from './scannerImage';
+import type { Aspect } from '../../utils/scanner/types';
 import { decodeImage } from './decodeImage';
 import type { WorkerRequest, WorkerResponse } from './scanner.worker';
 
@@ -24,6 +27,8 @@ export type ScannerPipeline = {
   process(source: Blob, options: ProcessOptions, signal?: AbortSignal): Promise<PipelineResult>;
   /** Detecta el contorno en un cuadro del video (guía de encuadre en vivo). Consume (cierra) el bitmap. */
   detect(frame: ImageBitmap): Promise<FrameDetection | null>;
+  /** S11-19: detecta todas las piezas de una foto. */
+  detectMany(source: Blob, aspect: Aspect): Promise<MultiResult & { degraded: boolean }>;
   dispose(): void;
 };
 
@@ -173,6 +178,35 @@ export function createScannerPipeline(): ScannerPipeline {
         return detectBitmap(frame);
       } finally {
         frame.close();
+      }
+    },
+
+    async detectMany(source, aspect) {
+      const bitmap = await decodeImage(source);
+      const target = ensureWorker();
+      if (target) {
+        const backup = await createImageBitmap(bitmap);
+        try {
+          const response = await request(
+            target,
+            (id) => ({ id, kind: 'detectMany', bitmap, aspect }),
+            PROCESS_TIMEOUT_MS,
+          );
+          backup.close();
+          if (response.kind !== 'detectMany') throw new ScannerImageError('worker_failed');
+          return { ...response.multi, degraded: false };
+        } catch {
+          try {
+            return { ...detectManyBitmap(backup, aspect), degraded: true };
+          } finally {
+            backup.close();
+          }
+        }
+      }
+      try {
+        return { ...detectManyBitmap(bitmap, aspect), degraded: true };
+      } finally {
+        bitmap.close();
       }
     },
 

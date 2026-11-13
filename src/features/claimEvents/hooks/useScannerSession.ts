@@ -5,7 +5,7 @@ import { reportClientError } from '@/lib/observability/client';
 import { logger } from '@/lib/observability/logger';
 import type { ClaimItem } from '@/types/claims';
 import type { CategoryDefinition } from '@/types/categories';
-import { createCaptureQueue, type CaptureQueue } from '../services/scanner/captureQueue';
+import { createCaptureQueue, randomId, type CaptureQueue } from '../services/scanner/captureQueue';
 import { createIdbCaptureStore, createResilientCaptureStore } from '../services/scanner/captureStore';
 import {
   createScannerPipeline,
@@ -17,10 +17,14 @@ import { uploadCapture } from '../services/scanner/uploader.client';
 import { deleteItemAction } from '../services/claimEvents.actions';
 import { scannerContent } from '../content/scanner';
 import { pendingCount, type CaptureEntry } from '../utils/scanner/queue';
+import { manualPieceQuad, sortReadingOrder, type MultiWarning } from '../utils/scanner/multi';
 import type { Quad } from '../utils/scanner/types';
 import type { StripItem } from '../components/CaptureStrip';
 
-export type ScannerPhase = 'camera' | 'processing' | 'adjust' | 'price';
+export type ScannerPhase = 'camera' | 'processing' | 'adjust' | 'price' | 'pieces' | 'batch';
+
+/** Una foto con una sola pieza (por defecto) o con varias. */
+export type CaptureMode = 'single' | 'multi';
 
 export type CurrentCapture = {
   original: Blob;
@@ -28,6 +32,31 @@ export type CurrentCapture = {
   result: PipelineResult;
   resultUrl: string;
   corners: Quad;
+};
+
+/** Una pieza detectada en una foto con varias (S11-19). */
+export type PieceDraft = {
+  id: string;
+  /** Esquinas normalizadas (0 a 1) respecto de la foto. */
+  corners: Quad;
+  /** Pasó la validación, o el vendedor la ajustó a mano. Una pieza inválida debe ajustarse o quitarse. */
+  valid: boolean;
+  problems: string[];
+};
+
+export type MultiCapture = {
+  original: Blob;
+  originalUrl: string;
+  sourceAspect: number;
+  pieces: PieceDraft[];
+  warnings: MultiWarning[];
+};
+
+/** Piezas ya recortadas de una foto, esperando su precio una por una. */
+export type PriceBatch = {
+  photoId: string;
+  results: { result: PipelineResult; url: string }[];
+  index: number;
 };
 
 export type ReplaceTarget = { itemId: string; priceCents: number | null };
@@ -71,7 +100,11 @@ export function useScannerSession({ sessionId, category }: Params) {
   const [entries, setEntries] = useState<CaptureEntry[]>([]);
   const [ready, setReady] = useState(false);
   const [offline, setOffline] = useState(false);
-  const incoming = useRef<Blob[]>([]);
+  const incoming = useRef<{ photo: Blob; mode: CaptureMode }[]>([]);
+  const modeRef = useRef<CaptureMode>('single');
+  const [captureMode, setCaptureModeState] = useState<CaptureMode>('single');
+  const [multi, setMulti] = useState<MultiCapture | null>(null);
+  const [batch, setBatch] = useState<PriceBatch | null>(null);
   const busy = useRef(false);
   const pumpRef = useRef<() => void>(() => undefined);
   const [waiting, setWaiting] = useState(0);
@@ -128,13 +161,40 @@ export function useScannerSession({ sessionId, category }: Params) {
   // Procesa las fotos de una en una (varias a la vez si se eligieron varios archivos).
   const pump = useCallback(() => {
     const pipeline = pipelineRef.current;
-    const photo = incoming.current[0];
-    if (busy.current || !photo || !pipeline) return;
+    const next = incoming.current[0];
+    if (busy.current || !next || !pipeline) return;
+    const { photo, mode } = next;
     incoming.current = incoming.current.slice(1);
     busy.current = true;
     setWaiting(incoming.current.length);
     setPhase('processing');
     setError(null);
+    if (mode === 'multi') {
+      pipeline
+        .detectMany(photo, aspect)
+        .then((found) => {
+          setMulti({
+            original: photo,
+            originalUrl: makeUrl(photo),
+            sourceAspect: found.sourceAspect,
+            warnings: found.warnings,
+            pieces: found.pieces.map((p) => ({
+              id: randomId(),
+              corners: p.corners,
+              valid: p.valid,
+              problems: p.problems,
+            })),
+          });
+          setPhase('pieces');
+        })
+        .catch((e: unknown) => {
+          busy.current = false;
+          setPhase('camera');
+          if ((e as { name?: string })?.name !== 'AbortError') setError(describeProblem(e));
+          pumpRef.current();
+        });
+      return;
+    }
     pipeline
       .process(photo, { aspect })
       .then((result) => {
@@ -161,7 +221,7 @@ export function useScannerSession({ sessionId, category }: Params) {
 
   const addPhoto = useCallback(
     (photo: Blob) => {
-      incoming.current = [...incoming.current, photo];
+      incoming.current = [...incoming.current, { photo, mode: modeRef.current }];
       setWaiting(incoming.current.length);
       pump();
     },
@@ -224,6 +284,130 @@ export function useScannerSession({ sessionId, category }: Params) {
     [current, replaceTarget, closeCurrent, sessionId],
   );
 
+  // --- Varias piezas por foto (S11-19) ---------------------------------------------------------------
+
+  const setCaptureMode = useCallback((mode: CaptureMode) => {
+    modeRef.current = mode;
+    setCaptureModeState(mode);
+  }, []);
+
+  const closeMulti = useCallback(() => {
+    setMulti((value) => {
+      if (value) dropUrl(value.originalUrl);
+      return null;
+    });
+    setPhase('camera');
+    busy.current = false;
+    pump();
+  }, [dropUrl, pump]);
+
+  const removePiece = useCallback(
+    (id: string) => setMulti((m) => (m ? { ...m, pieces: m.pieces.filter((p) => p.id !== id) } : m)),
+    [],
+  );
+
+  /** Ajustar las esquinas es la confirmación del vendedor: la pieza deja de estar "por revisar". */
+  const setPieceCorners = useCallback(
+    (id: string, corners: Quad) =>
+      setMulti((m) =>
+        m ? { ...m, pieces: m.pieces.map((p) => (p.id === id ? { ...p, corners, valid: true, problems: [] } : p)) } : m,
+      ),
+    [],
+  );
+
+  /** Pieza añadida a mano: recorte centrado y pequeño que el vendedor arrastra a su lugar. Devuelve su id. */
+  const addPiece = useCallback((): string | null => {
+    const id = randomId();
+    setMulti((m) => {
+      if (!m) return m;
+      const px = manualPieceQuad({ width: m.sourceAspect, height: 1 }, aspect);
+      const corners = px.map((p) => ({ x: p.x / m.sourceAspect, y: p.y })) as Quad;
+      return { ...m, pieces: [...m.pieces, { id, corners, valid: true, problems: [] }] };
+    });
+    return id;
+  }, [aspect]);
+
+  const dropBatchUrls = useCallback(
+    (value: PriceBatch | null) => value?.results.forEach(({ url }) => dropUrl(url)),
+    [dropUrl],
+  );
+
+  /** Recorta cada pieza confirmada (en orden de lectura) y pasa al precio pieza por pieza. */
+  const confirmPieces = useCallback(async () => {
+    const value = multi;
+    const pipeline = pipelineRef.current;
+    if (!value || !pipeline || value.pieces.length === 0) return;
+    setPhase('processing');
+    const ordered = sortReadingOrder(value.pieces);
+    const results: PriceBatch['results'] = [];
+    try {
+      for (const piece of ordered) {
+        const result = await pipeline.process(value.original, { aspect, corners: piece.corners });
+        results.push({ result, url: makeUrl(result.blob) });
+      }
+    } catch (e) {
+      results.forEach(({ url }) => dropUrl(url));
+      setPhase('pieces');
+      setError(describeProblem(e));
+      return;
+    }
+    dropUrl(value.originalUrl);
+    setMulti(null);
+    setBatch({ photoId: randomId(), results, index: 0 });
+    setPhase('batch');
+  }, [multi, aspect, dropUrl, makeUrl]);
+
+  const finishBatch = useCallback(() => {
+    setBatch((value) => {
+      dropBatchUrls(value);
+      return null;
+    });
+    setPhase('camera');
+    busy.current = false;
+    pump();
+  }, [dropBatchUrls, pump]);
+
+  /** Encola la pieza actual con su precio y avanza a la siguiente (resaltada). */
+  const confirmBatchPiece = useCallback(
+    async (priceCents: number | null) => {
+      const value = batch;
+      const queue = queueRef.current;
+      if (!value || !queue) return;
+      const piece = value.results[value.index];
+      if (!piece) return;
+      const n = value.index + 1;
+      await queue.add({
+        sessionId,
+        blob: piece.result.blob,
+        priceCents,
+        id: `${value.photoId}-${n}`,
+        after: n > 1 ? `${value.photoId}-${n - 1}` : null,
+      });
+      if (value.index + 1 >= value.results.length) finishBatch();
+      else setBatch({ ...value, index: value.index + 1 });
+    },
+    [batch, sessionId, finishBatch],
+  );
+
+  /** Encola las piezas que faltan sin precio (se completan en la revisión por lotes). */
+  const skipRemainingPrices = useCallback(async () => {
+    const value = batch;
+    const queue = queueRef.current;
+    if (!value || !queue) return;
+    for (let i = value.index; i < value.results.length; i += 1) {
+      const piece = value.results[i];
+      if (!piece) continue;
+      await queue.add({
+        sessionId,
+        blob: piece.result.blob,
+        priceCents: null,
+        id: `${value.photoId}-${i + 1}`,
+        after: i > 0 ? `${value.photoId}-${i}` : null,
+      });
+    }
+    finishBatch();
+  }, [batch, sessionId, finishBatch]);
+
   const last = entries[entries.length - 1];
 
   const repeatLast = useCallback(async () => {
@@ -266,10 +450,10 @@ export function useScannerSession({ sessionId, category }: Params) {
       priceCents: e.priceCents,
       errorCode: e.errorCode,
     }));
-    if (current || phase === 'processing')
+    if (current || multi || batch || phase === 'processing')
       base.push({ id: 'current', status: 'processing', priceCents: null });
     return base;
-  }, [entries, current, phase]);
+  }, [entries, current, multi, batch, phase]);
 
   return {
     aspect,
@@ -298,6 +482,17 @@ export function useScannerSession({ sessionId, category }: Params) {
     finish,
     loadBlob,
     detectFrame,
+    captureMode,
+    setCaptureMode,
+    multi,
+    removePiece,
+    setPieceCorners,
+    addPiece,
+    confirmPieces,
+    retakeMulti: closeMulti,
+    batch,
+    confirmBatchPiece,
+    skipRemainingPrices,
   };
 }
 

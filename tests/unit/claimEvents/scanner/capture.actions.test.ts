@@ -96,7 +96,10 @@ describe('saveCaptureAction (S11-05)', () => {
   it('acepta el JPEG de respaldo (navegador sin WebP) y lo manda al service con su tipo', async () => {
     open();
     const jpeg = new File(['x'], 'item.jpg', { type: 'image/jpeg' });
-    expect(await saveCaptureAction(form({ image: jpeg }))).toEqual({ status: 'success', itemId: ITEM });
+    expect(await saveCaptureAction(form({ image: jpeg }))).toEqual({
+      status: 'success',
+      itemId: ITEM,
+    });
     expect(create.mock.calls[0]![3].type).toBe('image/jpeg');
   });
 
@@ -224,7 +227,9 @@ describe('uploadCapture (cliente → Server Action)', () => {
   });
   it('un error no reintentable se propaga como tal', async () => {
     open('live');
-    await expect(uploadCapture(entry, new Blob(['x'], { type: 'image/webp' }))).rejects.toMatchObject({
+    await expect(
+      uploadCapture(entry, new Blob(['x'], { type: 'image/webp' })),
+    ).rejects.toMatchObject({
       code: 'invalid_state',
       retryable: false,
     });
